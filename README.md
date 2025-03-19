@@ -1,4 +1,4 @@
-# llm-with-chat-interface
+# chat-pdf
 
-- Chat Interface using React and FastAPI
+- ChatPDF using React and FastAPI
 - Using LangChain with locally ran model(mistral:latest) with Ollama to generate response
