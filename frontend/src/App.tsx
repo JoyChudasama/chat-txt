@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import './App.css'
+import { Button } from "@/components/ui/button"
 
 function App() {
   const [messages, setMessages] = useState([])
@@ -18,9 +19,8 @@ function App() {
   return (
     <>
       <div className="card">
-        <button onClick={getMessages}>
-          Get Messages
-        </button>
+      <Button onClick={getMessages}>Click me</Button>
+
         <ul>
           {messages.map((msg, index) => (
             <li key={index}>{msg}</li>
