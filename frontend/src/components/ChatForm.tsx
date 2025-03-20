@@ -9,7 +9,6 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { Form } from "@/components/ui/form"
 import { useState } from "react"
-// import { useToast } from "@/components/hooks/use-toast"
 
 const formSchema = z.object({
     userMessageInput: z.string().min(3, "Message must be at least 3 characters long"),
@@ -17,7 +16,9 @@ const formSchema = z.object({
 })
 
 export function ChatForm() {
+
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const [messages, setMessages] = useState([{}])
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -28,6 +29,9 @@ export function ChatForm() {
     })
 
     async function onSendMessage(values: z.infer<typeof formSchema>) {
+        form.reset();
+        setSelectedFile(null);
+
         const formData = new FormData();
         if (selectedFile) {
             formData.append("file", selectedFile);
@@ -35,17 +39,22 @@ export function ChatForm() {
 
         formData.append("user_message", values.userMessageInput);
 
+        const newHumanMessage = { "type": "human", "content": values.userMessageInput }
+        setMessages((oldMessages) => [...oldMessages, newHumanMessage])
+
         try {
-            const response = await fetch("http://127.0.0.1:8000/upload", {
+            const response = await fetch("http://127.0.0.1:8000/api/v1/chat", {
                 method: "POST",
                 body: formData,
             });
 
             if (!response.ok) throw new Error("Failed to upload file");
 
-            const result = await response.json();
+            const res = await response.json();
+            const newAiMessage = { "type": "ai", "content": res.ai_message }
+            setMessages(oldMessages => [...oldMessages, newAiMessage])
 
-            console.log("Upload successful:", result);
+            console.log(res);
         } catch (error) {
             console.error(error);
         }
@@ -53,6 +62,12 @@ export function ChatForm() {
 
     return (
         <>
+            {messages.map((msg, index) => (
+                <div key={index}>
+                    {msg.type} {msg.content}
+                </div>
+            ))}
+            
             <div className="card">
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSendMessage)} encType="multipart/form-data" className="space-y-8">
