@@ -1,7 +1,11 @@
+import os
+from dotenv import load_dotenv
+
 from fastapi import FastAPI, File, UploadFile, Form
 from fastapi.middleware.cors import CORSMiddleware
-import os
 from typing import Optional
+from langchain_ollama.chat_models import ChatOllama
+from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 
 app = FastAPI()
 
@@ -16,19 +20,28 @@ app.add_middleware(
 UPLOAD_DIR = "./uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
-@app.get("/")
+@app.get("/api")
 async def root():
-    return ["Hello", "from", "FastAPI"]
+    return "Try routes with /api/v1/"
 
-@app.post("/upload")
-async def upload_file(
+@app.post("/api/v1/chat")
+async def chat(
     user_message: str = Form(...),
     file: Optional[UploadFile] = File(None)
-):
+)->dict:
+    handle_file(file)
+    ai_message = await handle_chat(user_message)
+    
+    return {"user_message": user_message, "ai_message":ai_message}
+
+
+async def handle_chat(message:str)->str:
+    model = ChatOllama(model="mistral:latest", temperature=0.5)
+    res =  model.invoke([HumanMessage(content=message)]).content
+    return model.invoke([SystemMessage(content="You are great at updating text that was prepared for terminal to prepar for web in very eye pleasing way for user. Do not edit the content of the text only format the text."), HumanMessage(content=res)]).content
+def handle_file(file):
     file_path = None
     if file:
         file_path = os.path.join(UPLOAD_DIR, file.filename)
         with open(file_path, "wb") as buffer:
             buffer.write(file.file.read())
-
-    return {"user_message": user_message}
