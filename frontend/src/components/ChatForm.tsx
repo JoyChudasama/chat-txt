@@ -111,7 +111,7 @@ export function ChatForm({ setMessages }: ChatFormProps) {
                                     <Textarea
                                         placeholder="Start chatting with your PDF"
                                         {...field}
-                                        className="min-h-[60px] resize-none"
+                                        className="min-h-[80px] resize-none"
                                         onFocus={handleOnFocus}
                                         onKeyDown={handleKeyDown}
                                         onChange={(e) => {
@@ -141,35 +141,36 @@ export function ChatForm({ setMessages }: ChatFormProps) {
                                 </button>
                             </div>
                         )}
-                        <div className="relative">
-                            <input
-                                type="file"
-                                accept=".pdf"
-                                onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
-                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                                id="file-upload"
-                                disabled={isLoading}
-                            />
-                            <Button
-                                type="button"
-                                variant="outline"
-                                size="icon"
-                                className="h-12 w-12"
-                                disabled={isLoading}
+                        <div className="flex items-center">
+                            <label
+                                htmlFor="file-upload"
+                                className={`flex items-center h-10 w-20 gap-2 px-3 py-2 rounded-md border 
+                                    ${isLoading ? 'bg-gray-100 cursor-not-allowed' : 'hover:bg-gray-50 cursor-pointer'}`
+                                }
                             >
-                                <FileUp className="h-6 w-6" />
-                            </Button>
+                                <FileUp className="h-4 w-4" />
+                                <span className="text-sm font-medium">PDF</span>
+                                <input
+                                    type="file"
+                                    id="file-upload"
+                                    accept=".pdf"
+                                    onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                                    className="hidden"
+                                    disabled={isLoading}
+                                />
+                            </label>
                         </div>
+                        <Button
+                            type="submit"
+                            size="icon"
+                            className="h-10 w-20 cursor-pointer"
+                            disabled={isLoading || isMessageEmpty}
+                        >
+                            <Send className="h-6 w-6 " />
+                        </Button>
                     </div>
 
-                    <Button
-                        type="submit"
-                        size="icon"
-                        className="h-12 w-12 cursor-pointer"
-                        disabled={isLoading || isMessageEmpty}
-                    >
-                        <Send className="h-6 w-6" />
-                    </Button>
+
                 </form>
             </Form>
         </div>
