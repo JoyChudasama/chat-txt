@@ -7,13 +7,15 @@ import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { Form } from "@/components/ui/form"
-import { useState } from "react"
-import { FileUp, Send } from "lucide-react"
+import { useEffect, useState } from "react"
+import { FileUp, Send, X } from "lucide-react"
 
 const formSchema = z.object({
     userMessageInput: z.string(),
     fileInput: z.instanceof(File).optional(),
 })
+
+const apiUrl = "http://localhost:8000/api/v1/chat";
 
 type Message = {
     type: "human" | "ai" | "thinking";
@@ -37,6 +39,15 @@ export function ChatForm({ setMessages }: ChatFormProps) {
         },
     })
 
+    const focusTextarea = () => {
+        const textarea = document.querySelector('textarea[name="userMessageInput"]') as HTMLTextAreaElement;
+        textarea?.focus();
+    };
+
+    useEffect(() => {
+        focusTextarea();
+    }, []);
+
     async function onSendMessage(values: z.infer<typeof formSchema>) {
         if (isLoading) return;
 
@@ -50,6 +61,7 @@ export function ChatForm({ setMessages }: ChatFormProps) {
         }
 
         formData.append("user_message", values.userMessageInput);
+        formData.append("user_id", "user123");
 
         const newHumanMessage: Message = { type: "human", content: values.userMessageInput }
         setMessages((oldMessages) => [...oldMessages, newHumanMessage])
@@ -58,7 +70,7 @@ export function ChatForm({ setMessages }: ChatFormProps) {
         setMessages(oldMessages => [...oldMessages, thinkingMessage])
 
         try {
-            const response = await fetch("http://127.0.0.1:8000/api/v1/chat", {
+            const response = await fetch(apiUrl, {
                 method: "POST",
                 body: formData,
             });
@@ -76,6 +88,8 @@ export function ChatForm({ setMessages }: ChatFormProps) {
             setMessages(oldMessages => oldMessages.filter(msg => msg.type !== "thinking"));
         } finally {
             setIsLoading(false);
+            // Focus textarea after AI response
+            setTimeout(focusTextarea, 100);
         }
     }
 
@@ -95,7 +109,7 @@ export function ChatForm({ setMessages }: ChatFormProps) {
     }
 
     return (
-        <div className="sticky bottom-0 bg-white pt-4 border-t border-gray-200">
+        <div className="sticky bottom-0 bg-white pr-2  rounded-2xl">
             <Form {...form}>
                 <form
                     onSubmit={form.handleSubmit(onSendMessage)}
@@ -111,7 +125,7 @@ export function ChatForm({ setMessages }: ChatFormProps) {
                                     <Textarea
                                         placeholder="Start chatting with your PDF"
                                         {...field}
-                                        className="min-h-[80px] resize-none"
+                                        className="min-h-[80px] resize-none border-none shadow-none focus-visible:ring-0 text-lg placeholder:text-lg"
                                         onFocus={handleOnFocus}
                                         onKeyDown={handleKeyDown}
                                         onChange={(e) => {
@@ -125,10 +139,11 @@ export function ChatForm({ setMessages }: ChatFormProps) {
                         )}
                     />
 
-                    <div className="flex flex-col items-center gap-2">
+                    <div className="flex flex-col items-center gap-2 py-2">
+                        
                         {selectedFile && (
-                            <div className="flex items-center gap-1">
-                                <span className="text-sm text-gray-500 truncate max-w-[100px]">
+                            <div className="absolute right-0 bottom-28 flex items-center gap-1 bg-white p-2 rounded-lg shadow-md border border-gray-200">
+                                <span className="text-sm text-gray-500 truncate max-w-[200px]">
                                     {selectedFile.name}
                                 </span>
                                 <button
@@ -137,14 +152,15 @@ export function ChatForm({ setMessages }: ChatFormProps) {
                                     className="text-gray-500 hover:text-gray-700"
                                     disabled={isLoading}
                                 >
-                                    <span className="h-4 w-4 text-red-500 cursor-pointer">x</span>
+                                    <X className="h-4 w-4 text-red-500 cursor-pointer" />
                                 </button>
                             </div>
                         )}
+
                         <div className="flex items-center">
                             <label
                                 htmlFor="file-upload"
-                                className={`flex items-center h-10 w-20 gap-2 px-3 py-2 rounded-md border 
+                                className={`flex items-center h-10 w-20 gap-2 px-3 py-2 rounded-md border-dashed border border-gray-300
                                     ${isLoading ? 'bg-gray-100 cursor-not-allowed' : 'hover:bg-gray-50 cursor-pointer'}`
                                 }
                             >
@@ -160,6 +176,7 @@ export function ChatForm({ setMessages }: ChatFormProps) {
                                 />
                             </label>
                         </div>
+                        
                         <Button
                             type="submit"
                             size="icon"
@@ -169,7 +186,6 @@ export function ChatForm({ setMessages }: ChatFormProps) {
                             <Send className="h-6 w-6 " />
                         </Button>
                     </div>
-
 
                 </form>
             </Form>
