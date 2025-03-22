@@ -24,9 +24,10 @@ type Message = {
 
 interface ChatFormProps {
     setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
+    userId: string;
 }
 
-export function ChatForm({ setMessages }: ChatFormProps) {
+export function ChatForm({ setMessages, userId }: ChatFormProps) {
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [isMessageEmpty, setIsMessageEmpty] = useState(true);
@@ -61,7 +62,6 @@ export function ChatForm({ setMessages }: ChatFormProps) {
         }
 
         formData.append("user_message", values.userMessageInput);
-        formData.append("user_id", "user123");
 
         const newHumanMessage: Message = { type: "human", content: values.userMessageInput }
         setMessages((oldMessages) => [...oldMessages, newHumanMessage])
@@ -70,7 +70,7 @@ export function ChatForm({ setMessages }: ChatFormProps) {
         setMessages(oldMessages => [...oldMessages, thinkingMessage])
 
         try {
-            const response = await fetch(apiUrl, {
+            const response = await fetch(`${apiUrl}?user_id=${userId}`, {
                 method: "POST",
                 body: formData,
             });
