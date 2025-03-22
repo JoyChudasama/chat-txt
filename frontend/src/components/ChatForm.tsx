@@ -87,15 +87,18 @@ export function ChatForm() {
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
         const messageValue = form.getValues("userMessageInput").trim();
-        if (!messageValue) return setIsMessageEmpty(true);
+        setIsMessageEmpty(!messageValue);
 
-        setIsMessageEmpty(false);
-
-        if (e.key === 'Enter' && !e.shiftKey) {
+        if (e.key === 'Enter' && !e.shiftKey && messageValue) {
             e.preventDefault();
             form.handleSubmit(onSendMessage)();
         }
     };
+
+    const handleOnFocus = (e: React.FocusEvent) => {
+        const messageValue = form.getValues("userMessageInput").trim();
+        setIsMessageEmpty(!messageValue);
+    }
 
     return (
         <div className="flex flex-col h-screen max-w-[60vw] mx-auto p-4">
@@ -137,7 +140,12 @@ export function ChatForm() {
                                             placeholder="Start chatting with your PDF"
                                             {...field}
                                             className="min-h-[60px] resize-none"
+                                            onFocus={handleOnFocus}
                                             onKeyDown={handleKeyDown}
+                                            onChange={(e) => {
+                                                field.onChange(e);
+                                                setIsMessageEmpty(!e.target.value.trim());
+                                            }}
                                             disabled={isLoading}
                                         />
                                     </FormControl>
