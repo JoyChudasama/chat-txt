@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
-import { FormControl, FormField, FormItem, FormMessage } from './ui/form'
+import { FormControl, FormField, FormItem } from './ui/form'
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
@@ -11,7 +11,7 @@ import { useState, useEffect, useRef } from "react"
 import { FileUp, Send, Loader2 } from "lucide-react"
 
 const formSchema = z.object({
-    userMessageInput: z.string().min(3, "Message must be at least 3 characters long"),
+    userMessageInput: z.string(),
     fileInput: z.instanceof(File).optional(),
 })
 
@@ -24,6 +24,7 @@ export function ChatForm() {
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [messages, setMessages] = useState<Message[]>([])
     const [isLoading, setIsLoading] = useState(false);
+    const [isMessageEmpty, setIsMessageEmpty] = useState(true);
     const messagesEndRef = useRef<HTMLDivElement>(null)
 
     const scrollToBottom = () => {
@@ -44,7 +45,7 @@ export function ChatForm() {
 
     async function onSendMessage(values: z.infer<typeof formSchema>) {
         if (isLoading) return;
-        
+
         form.reset();
         setSelectedFile(null);
         setIsLoading(true);
@@ -58,7 +59,7 @@ export function ChatForm() {
 
         const newHumanMessage: Message = { type: "human", content: values.userMessageInput }
         setMessages((oldMessages) => [...oldMessages, newHumanMessage])
-        
+
         const thinkingMessage: Message = { type: "thinking", content: "" }
         setMessages(oldMessages => [...oldMessages, thinkingMessage])
 
@@ -71,14 +72,13 @@ export function ChatForm() {
             if (!response.ok) throw new Error("Failed to upload file");
 
             const res = await response.json();
-           
+
             setMessages(oldMessages => {
                 const filteredMessages = oldMessages.filter(msg => msg.type !== "thinking");
                 return [...filteredMessages, { type: "ai", content: res.ai_message }];
             });
         } catch (error) {
             console.error(error);
-            // Remove thinking message on error
             setMessages(oldMessages => oldMessages.filter(msg => msg.type !== "thinking"));
         } finally {
             setIsLoading(false);
@@ -86,6 +86,11 @@ export function ChatForm() {
     }
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
+        const messageValue = form.getValues("userMessageInput").trim();
+        if (!messageValue) return setIsMessageEmpty(true);
+
+        setIsMessageEmpty(false);
+
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
             form.handleSubmit(onSendMessage)();
@@ -96,13 +101,12 @@ export function ChatForm() {
         <div className="flex flex-col h-screen max-w-[60vw] mx-auto p-4">
             <div className="flex-1 overflow-y-auto p-4 mb-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                 {messages.map((msg, index) => (
-                    <div 
-                        key={index} 
-                        className={`p-4 mb-4 rounded-lg ${
-                            msg.type === "human" 
-                                ? "bg-gray-100 ml-8" 
-                                :  ""
-                        }`}
+                    <div
+                        key={index}
+                        className={`p-4 mb-4 rounded-lg ${msg.type === "human"
+                            ? "bg-gray-100 ml-8"
+                            : ""
+                            }`}
                     >
                         {msg.type === "thinking" ? (
                             <>
@@ -115,14 +119,13 @@ export function ChatForm() {
                 ))}
                 <div ref={messagesEndRef} />
             </div>
-            
+
             <div className="sticky bottom-0 bg-white pt-4 border-t border-gray-200">
                 <Form {...form}>
-                    <form 
-                        onSubmit={form.handleSubmit(onSendMessage)} 
-                        encType="multipart/form-data" 
+                    <form
+                        onSubmit={form.handleSubmit(onSendMessage)}
+                        encType="multipart/form-data"
                         className="flex gap-4 items-end justify-between max-w-full mx-auto"
-                        disabled={isLoading}
                     >
                         <FormField
                             control={form.control}
@@ -130,15 +133,14 @@ export function ChatForm() {
                             render={({ field }) => (
                                 <FormItem className="flex-1">
                                     <FormControl>
-                                        <Textarea 
-                                            placeholder="Start chatting with your PDF" 
+                                        <Textarea
+                                            placeholder="Start chatting with your PDF"
                                             {...field}
                                             className="min-h-[60px] resize-none"
                                             onKeyDown={handleKeyDown}
                                             disabled={isLoading}
                                         />
                                     </FormControl>
-                                    <FormMessage />
                                 </FormItem>
                             )}
                         />
@@ -168,9 +170,9 @@ export function ChatForm() {
                                     id="file-upload"
                                     disabled={isLoading}
                                 />
-                                <Button 
-                                    type="button" 
-                                    variant="outline" 
+                                <Button
+                                    type="button"
+                                    variant="outline"
                                     size="icon"
                                     className="h-12 w-12"
                                     disabled={isLoading}
@@ -180,11 +182,11 @@ export function ChatForm() {
                             </div>
                         </div>
 
-                        <Button 
-                            type="submit" 
-                            size="icon" 
+                        <Button
+                            type="submit"
+                            size="icon"
                             className="h-12 w-12 cursor-pointer"
-                            disabled={isLoading}
+                            disabled={isLoading || isMessageEmpty}
                         >
                             <Send className="h-6 w-6" />
                         </Button>
