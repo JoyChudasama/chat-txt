@@ -48,21 +48,23 @@ export function ChatHistory({ messages, setMessages }: ChatHistoryProps) {
 
     if (isLoading) {
         return (
-            <div className="flex-1 flex items-center justify-center">
+            <div className="h-[calc(100vh-12rem)] flex items-center justify-center">
                 <div className="flex flex-col items-center gap-2">
-                    <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
-                    <p className="text-gray-500">Loading chat history...</p>
+                    <Loader2 className="h-8 w-8 animate-spin" />
+                    <p>Loading chat history...</p>
                 </div>
             </div>
         )
     }
 
     return (
-        <div className="flex-1 overflow-y-auto p-4 mb-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-            {messages.map((msg, index) => (
-                <Message key={index} message={msg} />
-            ))}
-            <div ref={messagesEndRef} />
+        <div className="h-[calc(100vh-12rem)] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+            <div className="p-4">
+                {messages.map((msg, index) => (
+                    <Message key={index} message={msg} />
+                ))}
+                <div ref={messagesEndRef} />
+            </div>
         </div>
     )
 } 

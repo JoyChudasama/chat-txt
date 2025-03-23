@@ -2,13 +2,16 @@ import './App.css'
 import { ChatForm } from "@/components/ChatForm"
 import { ChatHistory } from "@/components/ChatHistory"
 import { Login } from "@/components/Login"
+import { Navbar } from "@/components/Navbar"
 import { useState, useEffect } from "react"
 import { MessageType } from "@/types/chat"
-import { Button } from "@/components/ui/button"
+
+const apiUrl = "http://localhost:8000/api/v1/chat"
 
 function App() {
   const [messages, setMessages] = useState<MessageType[]>([])
   const [userId, setUserId] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
     const storedUserId = localStorage.getItem('userId')
@@ -28,23 +31,64 @@ function App() {
     setMessages([])
   }
 
+  const onSendMessage = async (message: string, file?: File) => {
+    setIsLoading(true)
+    const formData = new FormData()
+    formData.append("user_message", message)
+    if (file) {
+      formData.append("file", file)
+    }
+
+    try {
+      const response = await fetch(`${apiUrl}?user_id=${userId}`, {
+        method: "POST",
+        body: formData,
+      })
+
+      if (!response.ok) throw new Error("Failed to send message")
+
+      const data = await response.json()
+      
+      setMessages(oldMessages => {
+        const filteredMessages = oldMessages.filter(msg => msg.type !== "thinking")
+        return [
+          ...filteredMessages,
+          {
+            type: "human",
+            content: message,
+            fileName: file?.name
+          },
+          {
+            type: "ai",
+            content: data.ai_message,
+            fileName: file?.name
+          }
+        ]
+      })
+    } catch (error) {
+      console.error(error)
+      setMessages(oldMessages => oldMessages.filter(msg => msg.type !== "thinking"))
+    } finally {
+      setIsLoading(false)
+    }
+  }
   if (!userId) {
     return <Login onLogin={handleLogin} />
   }
-
+  
   return (
-    <div className="flex flex-col h-screen max-w-[60vw] mx-auto p-4">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">Chat PDF</h1>
-        <Button 
-          variant="outline" 
-          onClick={handleLogout}
-        >
-          Logout
-        </Button>
+    <div className="h-screen overflow-hidden">
+      <Navbar onLogout={handleLogout} />
+      <div className="h-[calc(100vh-4rem)] max-w-[60vw] mx-auto w-full p-4 flex flex-col">
+        <div className="flex-1 overflow-hidden">
+          <ChatHistory messages={messages} setMessages={setMessages} />
+        </div>
+        <ChatForm 
+          setMessages={setMessages} 
+          onSendMessage={onSendMessage}
+          isLoading={isLoading}
+        />
       </div>
-      <ChatHistory messages={messages} setMessages={setMessages} />
-      <ChatForm setMessages={setMessages} userId={userId} />
     </div>
   )
 }
