@@ -50,7 +50,7 @@ function App() {
       const data = await response.json()
       
       setMessages(oldMessages => {
-        const filteredMessages = oldMessages.filter(msg => msg.type !== "thinking")
+        const filteredMessages = oldMessages.filter(msg => msg.type !== "thinking" && msg.content !== message)
         return [
           ...filteredMessages,
           {
@@ -61,7 +61,7 @@ function App() {
           {
             type: "ai",
             content: data.ai_message,
-            fileName: file?.name
+            fileName: undefined
           }
         ]
       })

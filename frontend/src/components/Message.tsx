@@ -19,10 +19,10 @@ export function Message({ message }: MessageProps) {
             ) : (
                 <>
                     <span className={`${message.type === "human" ? "text-gray-500" : "text-gray-800 italic"}`}>{message.content}</span>
-                    {message.fileName && (
+                    {message.type === "human" && message.fileName && (
                         <div className="mt-3 pt-3 border-t border-gray-200 flex items-center gap-2 text-sm text-gray-500">
                             <FileUp className="h-4 w-4" />
-                            <span className="truncate">Reply Generated using {message.fileName}</span>
+                            <span className="truncate">{message.fileName}</span>
                         </div>
                     )}
                 </>

@@ -9,19 +9,15 @@ import { useForm } from "react-hook-form"
 import { Form } from "@/components/ui/form"
 import { useState } from "react"
 import { FileUp, Send, X } from "lucide-react"
+import { MessageType } from "@/types/chat"
 
 const formSchema = z.object({
     userMessageInput: z.string(),
     fileInput: z.instanceof(File).optional(),
 })
 
-type Message = {
-    type: "human" | "ai" | "thinking";
-    content: string;
-}
-
 interface ChatFormProps {
-    setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
+    setMessages: React.Dispatch<React.SetStateAction<MessageType[]>>;
     onSendMessage: (message: string, file?: File) => void;
     isLoading: boolean;
 }
@@ -52,10 +48,10 @@ export function ChatForm({ setMessages, onSendMessage, isLoading }: ChatFormProp
 
         formData.append("user_message", values.userMessageInput);
 
-        const newHumanMessage: Message = { type: "human", content: values.userMessageInput }
+        const newHumanMessage: MessageType = { type: "human", content: values.userMessageInput, fileName: selectedFile?.name }
         setMessages((oldMessages) => [...oldMessages, newHumanMessage])
 
-        const thinkingMessage: Message = { type: "thinking", content: "" }
+        const thinkingMessage: MessageType = { type: "thinking", content: "" }
         setMessages(oldMessages => [...oldMessages, thinkingMessage])
 
         onSendMessage(values.userMessageInput, selectedFile || undefined);
