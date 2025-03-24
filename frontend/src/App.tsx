@@ -40,7 +40,8 @@ function App() {
     }
 
     try {
-      const response = await fetch(`${apiUrl}?user_id=${userId}`, {
+      const chatId = "chat1"
+      const response = await fetch(`${apiUrl}?user_id=${userId}&chat_id=${chatId}`, {
         method: "POST",
         body: formData,
       })
@@ -48,7 +49,7 @@ function App() {
       if (!response.ok) throw new Error("Failed to send message")
 
       const data = await response.json()
-      
+      console.dir(messages, data)
       setMessages(oldMessages => {
         const filteredMessages = oldMessages.filter(msg => msg.type !== "thinking" && msg.content !== message)
         return [

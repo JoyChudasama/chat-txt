@@ -139,7 +139,7 @@ export function ChatForm({ setMessages, onSendMessage, isLoading }: ChatFormProp
                                 <input
                                     type="file"
                                     id="file-upload"
-                                    accept=".pdf"
+                                    accept=".txt"
                                     onChange={handleFileChange}
                                     className="hidden"
                                     disabled={isLoading}
