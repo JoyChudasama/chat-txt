@@ -1,5 +1,4 @@
 import os
-import base64
 from dotenv import load_dotenv
 
 from fastapi import FastAPI, File, UploadFile, Form
@@ -68,17 +67,21 @@ async def chat(
 
 async def handle_chat(message:str, user_id:str, chat_id:str, file:Optional[UploadFile]=File(None))->str:
     
+    if not message and not file:
+        return ""
+
     chat_history = get_chat_history(user_id=user_id)
     chat_history.add_user_message(message)
-    
-    if file:
-        handle_file(user_id, chat_id, file)
 
-    rag_chain = await get_rag_chain(user_id, chat_id, file)
+    file_path = handle_file(user_id, chat_id, file)
+
+    rag_chain = await get_rag_chain(user_id, chat_id, file_path)
     ai_message = rag_chain.invoke({"input": message, "chat_history": chat_history.messages})['answer']
-    chat_history.add_ai_message(ai_message)
     
-    return ai_message
+    if message:
+        chat_history.add_ai_message(ai_message)
+    
+    return ai_message if message else "No message"
 
 def handle_file(user_id: str, chat_id: str, file: Optional[UploadFile] = File(None)):
     os.makedirs(os.path.join(UPLOAD_DIR, user_id, chat_id), exist_ok=True)
@@ -89,20 +92,19 @@ def handle_file(user_id: str, chat_id: str, file: Optional[UploadFile] = File(No
 
     return file_path
 
-async def get_rag_chain(user_id:str, chat_id:str, file: Optional[UploadFile] = File(None))->create_retrieval_chain:
+async def get_rag_chain(user_id:str, chat_id:str, file_path: Optional[str]=None)->create_retrieval_chain:
     model = ChatOllama(model="mistral:latest", temperature=0.25)
     qa_prompt = get_qa_prompt()
     
-    if not file:
-        return create_stuff_documents_chain(model, qa_prompt)
-    
-    db = await get_db(user_id, chat_id, file)
+    db = await get_db(user_id, chat_id, file_path)
     retriever = get_retriever(db, 'similarity', {'k':3})
-    chain = create_history_aware_retriever(model, retriever, get_contextualize_q_prompt())
 
-    return chain
+    history_aware_retriever = create_history_aware_retriever(model, retriever, get_contextualize_q_prompt())
+    question_answer_chain = create_stuff_documents_chain(model, qa_prompt)
 
-async def get_db(user_id:str, chat_id:str, file: Optional[UploadFile] = File(None))->Chroma:   
+    return create_retrieval_chain(history_aware_retriever, question_answer_chain)
+
+async def get_db(user_id:str, chat_id:str, file_path: Optional[str]=None)->Chroma:   
     persistent_directory = os.path.join(DB_DIR, user_id, chat_id)
     embeddings = OpenAIEmbeddings(
         model=os.getenv("OPENAI_EMBEDDING_MODEL"), 
@@ -111,17 +113,24 @@ async def get_db(user_id:str, chat_id:str, file: Optional[UploadFile] = File(Non
     
     documents = []
 
-    if file:
-        loader = TextLoader(file.file.read(), encoding='utf-8')
+    if os.path.exists(persistent_directory):
+        db = Chroma(persist_directory=persistent_directory, embedding_function=embeddings)
+        existing_docs = db.get()['documents']
+        documents.extend(existing_docs)
+   
+    if file_path:
+        loader = TextLoader(file_path, encoding='utf-8')
         docs = loader.load()
         for doc in docs:
-            doc.metadata = {"source": file.filename}
+            doc.metadata = {"source": file_path}
             documents.append(doc)
 
         text_splitter = RecursiveCharacterTextSplitter(chunk_size=800, chunk_overlap=300)
         docs = text_splitter.split_documents(documents)
-
-    return Chroma.from_documents(documents, embeddings, persist_directory=persistent_directory)
+        return Chroma.from_documents(docs, embeddings, persist_directory=persistent_directory)
+    else:
+        print("No file path")
+        return Chroma(embedding_function=embeddings, persist_directory=persistent_directory)
 
 def get_retriever(db:Chroma, search_type:str, search_kwags:dict)->VectorStoreRetriever:
     return db.as_retriever(

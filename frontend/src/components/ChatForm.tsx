@@ -151,7 +151,7 @@ export function ChatForm({ setMessages, onSendMessage, isLoading }: ChatFormProp
                             type="submit"
                             size="icon"
                             className="h-10 w-20 cursor-pointer"
-                            disabled={isLoading || isMessageEmpty}
+                            // disabled={isLoading || selectedFile == null || isMessageEmpty}
                         >
                             <Send className="h-6 w-6 " />
                         </Button>

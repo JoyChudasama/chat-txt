@@ -49,7 +49,6 @@ function App() {
       if (!response.ok) throw new Error("Failed to send message")
 
       const data = await response.json()
-      console.dir(messages, data)
       setMessages(oldMessages => {
         const filteredMessages = oldMessages.filter(msg => msg.type !== "thinking" && msg.content !== message)
         return [
