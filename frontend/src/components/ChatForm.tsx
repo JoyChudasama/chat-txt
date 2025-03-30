@@ -66,7 +66,7 @@ export function ChatForm({ setMessages, onSendMessage, isLoading }: ChatFormProp
             <Form {...form}>
                 <form
                     onSubmit={form.handleSubmit(handleSubmit)}
-                    className="flex gap-4 items-end justify-between max-w-full mx-auto"
+                    className="flex gap-4 justify-between items-center max-w-full mx-auto"
                 >
                     <FormField
                         control={form.control}

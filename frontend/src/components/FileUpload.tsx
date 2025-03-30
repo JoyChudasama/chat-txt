@@ -4,10 +4,11 @@ import { useState } from "react"
 
 interface FileUploadProps {
     userId: string;
+    chatId: string;
     onFileUploaded: () => void;
 }
 
-export function FileUpload({ userId, onFileUploaded }: FileUploadProps) {
+export function FileUpload({ userId, chatId, onFileUploaded }: FileUploadProps) {
     const [isLoading, setIsLoading] = useState(false)
     const [selectedFile, setSelectedFile] = useState<File | null>(null)
 
@@ -23,7 +24,6 @@ export function FileUpload({ userId, onFileUploaded }: FileUploadProps) {
         setIsLoading(true)
         const formData = new FormData()
         formData.append("file", selectedFile)
-        const chatId = "chat2"
 
         try {
             const response = await fetch(`http://localhost:8000/api/v1/upload_file?user_id=${userId}&chat_id=${chatId}`, {
@@ -36,6 +36,7 @@ export function FileUpload({ userId, onFileUploaded }: FileUploadProps) {
                 throw new Error(errorData.detail || "Failed to upload file")
             }
 
+            await new Promise(resolve => setTimeout(resolve, 1000))
             onFileUploaded()
         } catch (error) {
             console.error(error)
@@ -47,8 +48,8 @@ export function FileUpload({ userId, onFileUploaded }: FileUploadProps) {
     return (
         <div className="w-full h-full flex flex-col items-center justify-center gap-4 p-8">
             <div className="text-center space-y-2">
-                <h2 className="text-2xl font-semibold">Welcome to Chat PDF</h2>
-                <p className="text-gray-500">Please upload a PDF file to start chatting</p>
+                <h2 className="text-2xl font-semibold">Upload PDF to Start Chatting</h2>
+                <p className="text-gray-500">Select a PDF file to begin the conversation</p>
             </div>
             
             <div className="w-full max-w-md space-y-4">
@@ -79,7 +80,7 @@ export function FileUpload({ userId, onFileUploaded }: FileUploadProps) {
                     {isLoading ? (
                         <>
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Uploading...
+                            Processing PDF...
                         </>
                     ) : (
                         "Upload and Start Chatting"

@@ -6,11 +6,12 @@ import { Loader2 } from "lucide-react"
 interface ChatHistoryProps {
     messages: MessageType[];
     setMessages: React.Dispatch<React.SetStateAction<MessageType[]>>;
+    currentChatId: string;
 }
 
 const apiUrl = "http://localhost:8000/api/v1/chat_history";
 
-export function ChatHistory({ messages, setMessages }: ChatHistoryProps) {
+export function ChatHistory({ messages, setMessages, currentChatId }: ChatHistoryProps) {
     const messagesEndRef = useRef<HTMLDivElement>(null)
     const [isLoading, setIsLoading] = useState(true)
 
@@ -21,9 +22,8 @@ export function ChatHistory({ messages, setMessages }: ChatHistoryProps) {
     useEffect(() => {
         const user_id = localStorage.getItem('userId') || '';
         const fetchChatHistory = async () => {
-            const chatId = "chat2"
             try {
-                const response = await fetch(apiUrl + "?user_id=" + user_id + "&chat_id=" + chatId);
+                const response = await fetch(apiUrl + "?user_id=" + user_id + "&chat_id=" + currentChatId);
                 if (!response.ok) throw new Error("Failed to fetch chat history");
                 
                 const data = await response.json();
@@ -40,8 +40,10 @@ export function ChatHistory({ messages, setMessages }: ChatHistoryProps) {
             }
         };
 
-        fetchChatHistory();
-    }, []);
+        if (currentChatId) {
+            fetchChatHistory();
+        }
+    }, [currentChatId]);
 
     useEffect(() => {
         scrollToBottom()
