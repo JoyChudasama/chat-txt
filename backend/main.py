@@ -33,57 +33,67 @@ CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 UPLOAD_DIR = os.path.join(CURRENT_DIR, "uploads")
 DB_DIR = os.path.join(CURRENT_DIR, "db")
 
-
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 os.makedirs(DB_DIR, exist_ok=True)
 FIRESTORE_CLIENT = firestore.Client(project=os.environ.get("FIRESTORE_PROJECT_ID"))
-
-def get_chat_history(user_id:str)->FirestoreChatMessageHistory:
-    chat_history = FirestoreChatMessageHistory(
-        session_id=user_id,
-        collection=os.environ.get("FIRESTORE_CHAT_HISTORY_COLLECTION"),
-        client=FIRESTORE_CLIENT,
-    )
-
-    return chat_history
 
 @app.get("/api")
 async def root():
     return "Try routes with /api/v1/"
 
 @app.get("/api/v1/chat_history")
-async def chat_history(user_id: str):
-    return get_chat_history(user_id=user_id).messages
+async def chat_history(
+    user_id: str,
+    chat_id: str,
+):
+    return get_chat_history(user_id=user_id, chat_id=chat_id).messages
+
+@app.post("/api/v1/upload_file")
+async def upload_file(
+    user_id: str,
+    chat_id: str,
+    file: UploadFile = File(...),
+):
+    try:
+        file_path = handle_file(user_id, chat_id, file)
+        await prepare_db(user_id, chat_id, file_path)
+        return {"file_path": file_path}
+    except Exception as e:
+        return {"error": str(e)}
 
 @app.post("/api/v1/chat")
 async def chat(
     user_id: str,
     chat_id: str,
     user_message: str = Form(...),
-    file: Optional[UploadFile] = File(None)
 )->dict:
-    ai_message = await handle_chat(user_message, user_id, chat_id, file)
+    ai_message = await handle_chat(user_message, user_id, chat_id)
     return {"user_message": user_message, "ai_message":ai_message}
 
-async def handle_chat(message:str, user_id:str, chat_id:str, file:Optional[UploadFile]=File(None))->str:
+async def handle_chat(message:str, user_id:str, chat_id:str)->str:
     
-    if not message and not file:
-        return ""
-
-    chat_history = get_chat_history(user_id=user_id)
+    if not message:
+        return "No message"
+    chat_history = get_chat_history(user_id=user_id, chat_id=chat_id)
     chat_history.add_user_message(message)
 
-    file_path = handle_file(user_id, chat_id, file)
-
-    rag_chain = await get_rag_chain(user_id, chat_id, file_path)
+    rag_chain = await get_rag_chain(user_id, chat_id)
     ai_message = rag_chain.invoke({"input": message, "chat_history": chat_history.messages})['answer']
-    
-    if message:
-        chat_history.add_ai_message(ai_message)
-    
-    return ai_message if message else "No message"
 
-def handle_file(user_id: str, chat_id: str, file: Optional[UploadFile] = File(None)):
+    chat_history.add_ai_message(ai_message)
+    
+    return ai_message
+
+def get_chat_history(user_id:str, chat_id:str)->FirestoreChatMessageHistory:
+    chat_history = FirestoreChatMessageHistory(
+        session_id=chat_id,
+        collection=user_id,
+        client=FIRESTORE_CLIENT,
+    )
+
+    return chat_history
+
+def handle_file(user_id: str, chat_id: str, file: UploadFile = File(...)):
     os.makedirs(os.path.join(UPLOAD_DIR, user_id, chat_id), exist_ok=True)
     file_path = os.path.join(UPLOAD_DIR, user_id, chat_id, file.filename)
     
@@ -92,45 +102,46 @@ def handle_file(user_id: str, chat_id: str, file: Optional[UploadFile] = File(No
 
     return file_path
 
-async def get_rag_chain(user_id:str, chat_id:str, file_path: Optional[str]=None)->create_retrieval_chain:
+async def get_rag_chain(user_id:str, chat_id:str)->create_retrieval_chain:
     model = ChatOllama(model="mistral:latest", temperature=0.25)
     qa_prompt = get_qa_prompt()
     
-    db = await get_db(user_id, chat_id, file_path)
+    db = get_db(user_id, chat_id)
     retriever = get_retriever(db, 'similarity', {'k':3})
-
     history_aware_retriever = create_history_aware_retriever(model, retriever, get_contextualize_q_prompt())
     question_answer_chain = create_stuff_documents_chain(model, qa_prompt)
 
     return create_retrieval_chain(history_aware_retriever, question_answer_chain)
 
-async def get_db(user_id:str, chat_id:str, file_path: Optional[str]=None)->Chroma:   
+def get_db(user_id:str, chat_id:str)->Chroma:   
     persistent_directory = os.path.join(DB_DIR, user_id, chat_id)
     embeddings = OpenAIEmbeddings(
         model=os.getenv("OPENAI_EMBEDDING_MODEL"), 
         api_key=os.getenv("OPENAI_API_KEY")
     )
-    
-    documents = []
+    if not os.path.exists(persistent_directory):
+        return None
+    return Chroma(persist_directory=persistent_directory, embedding_function=embeddings)
 
-    if os.path.exists(persistent_directory):
-        db = Chroma(persist_directory=persistent_directory, embedding_function=embeddings)
-        existing_docs = db.get()['documents']
-        documents.extend(existing_docs)
-   
-    if file_path:
-        loader = TextLoader(file_path, encoding='utf-8')
-        docs = loader.load()
-        for doc in docs:
+async def prepare_db(user_id:str, chat_id:str, file_path:str):
+    documents = []
+    loader = TextLoader(file_path, encoding='utf-8')
+    docs = loader.load()
+
+    for doc in docs:
             doc.metadata = {"source": file_path}
             documents.append(doc)
 
-        text_splitter = RecursiveCharacterTextSplitter(chunk_size=800, chunk_overlap=300)
-        docs = text_splitter.split_documents(documents)
-        return Chroma.from_documents(docs, embeddings, persist_directory=persistent_directory)
-    else:
-        print("No file path")
-        return Chroma(embedding_function=embeddings, persist_directory=persistent_directory)
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=800, chunk_overlap=300)
+    docs = text_splitter.split_documents(documents)
+
+    persistent_directory = os.path.join(DB_DIR, user_id, chat_id)
+    embeddings = OpenAIEmbeddings(
+        model=os.getenv("OPENAI_EMBEDDING_MODEL"), 
+        api_key=os.getenv("OPENAI_API_KEY")
+    )
+
+    Chroma.from_documents(docs, embeddings, persist_directory=persistent_directory)
 
 def get_retriever(db:Chroma, search_type:str, search_kwags:dict)->VectorStoreRetriever:
     return db.as_retriever(
@@ -140,10 +151,10 @@ def get_retriever(db:Chroma, search_type:str, search_kwags:dict)->VectorStoreRet
 
 def get_qa_prompt()->ChatPromptTemplate:
     qa_system_prompt = (
-        "You are a geat assistant for question-answering tasks. "
-        "You have Masters degree in finding answer of a given question from given context. "
-        "Use the following pieces of retrieved context to answer the "
-        "question. If you don't know the answer, just say that you don't know. "
+        "You are a great assistant for question-answering tasks from a given Context."
+        "You have Masters degree in finding answer of a given question from given Context."
+        "Use the following pieces of retrieved context to answer the question."
+        "If you don't know the answer, just say I don't know."
         "Use three sentences maximum and keep the answer concise."
         "\n\nContext: \n{context}"
     )
@@ -156,11 +167,10 @@ def get_qa_prompt()->ChatPromptTemplate:
         ]
     )
 
-
 def get_contextualize_q_prompt()->ChatPromptTemplate:
     contextualize_q_system_prompt = (
-        "Given a chat history and the latest user question which might reference context in the chat history, "
-        "formulate a standalone question which can be understood without the chat history. Do NOT answer the question, "
+        "Given a chat history and the latest user question which might reference context in the chat history,"
+        "formulate a standalone question which can be understood without the chat history. Do NOT answer the question,"
         "just reformulate it if needed and otherwise return it as is."
     )
 

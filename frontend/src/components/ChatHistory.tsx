@@ -21,8 +21,9 @@ export function ChatHistory({ messages, setMessages }: ChatHistoryProps) {
     useEffect(() => {
         const user_id = localStorage.getItem('userId') || '';
         const fetchChatHistory = async () => {
+            const chatId = "chat2"
             try {
-                const response = await fetch(apiUrl + "?user_id=" + user_id);
+                const response = await fetch(apiUrl + "?user_id=" + user_id + "&chat_id=" + chatId);
                 if (!response.ok) throw new Error("Failed to fetch chat history");
                 
                 const data = await response.json();

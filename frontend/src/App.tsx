@@ -3,6 +3,7 @@ import { ChatForm } from "@/components/ChatForm"
 import { ChatHistory } from "@/components/ChatHistory"
 import { Login } from "@/components/Login"
 import { Navbar } from "@/components/Navbar"
+import { FileUpload } from "@/components/FileUpload"
 import { useState, useEffect } from "react"
 import { MessageType } from "@/types/chat"
 
@@ -12,6 +13,7 @@ function App() {
   const [messages, setMessages] = useState<MessageType[]>([])
   const [userId, setUserId] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [isFileUploaded, setIsFileUploaded] = useState(false)
 
   useEffect(() => {
     const storedUserId = localStorage.getItem('userId')
@@ -29,18 +31,19 @@ function App() {
     setUserId(null)
     localStorage.removeItem('userId')
     setMessages([])
+    setIsFileUploaded(false)
   }
 
-  const onSendMessage = async (message: string, file?: File) => {
+  const handleFileUploaded = () => {
+    setIsFileUploaded(true)
+  }
+
+  const onSendMessage = async (message: string) => {
     setIsLoading(true)
     const formData = new FormData()
     formData.append("user_message", message)
-    if (file) {
-      formData.append("file", file)
-    }
-
+    const chatId = "chat2"
     try {
-      const chatId = "chat1"
       const response = await fetch(`${apiUrl}?user_id=${userId}&chat_id=${chatId}`, {
         method: "POST",
         body: formData,
@@ -55,13 +58,11 @@ function App() {
           ...filteredMessages,
           {
             type: "human",
-            content: message,
-            fileName: file?.name
+            content: message
           },
           {
             type: "ai",
-            content: data.ai_message,
-            fileName: undefined
+            content: data.ai_message
           }
         ]
       })
@@ -72,6 +73,7 @@ function App() {
       setIsLoading(false)
     }
   }
+
   if (!userId) {
     return <Login onLogin={handleLogin} />
   }
@@ -81,13 +83,19 @@ function App() {
       <Navbar onLogout={handleLogout} />
       <div className="h-[calc(100vh-4rem)] max-w-[60vw] mx-auto w-full p-4 flex flex-col">
         <div className="flex-1 overflow-hidden">
-          <ChatHistory messages={messages} setMessages={setMessages} />
+          {isFileUploaded ? (
+            <ChatHistory messages={messages} setMessages={setMessages} />
+          ) : (
+            <FileUpload userId={userId} onFileUploaded={handleFileUploaded} />
+          )}
         </div>
-        <ChatForm 
-          setMessages={setMessages} 
-          onSendMessage={onSendMessage}
-          isLoading={isLoading}
-        />
+        {isFileUploaded && (
+          <ChatForm 
+            setMessages={setMessages} 
+            onSendMessage={onSendMessage}
+            isLoading={isLoading}
+          />
+        )}
       </div>
     </div>
   )
