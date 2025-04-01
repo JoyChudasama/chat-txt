@@ -189,7 +189,7 @@ export function Sidebar({ userId, currentChatId, onChatSelect, onNewChat }: Side
                                 onClick={handleNewChat}
                             >
                                 <Plus className="h-4 w-4 mr-2" />
-                                New Chat
+                                New Session
                             </Button>
                         </div>
                     )}

@@ -9,7 +9,7 @@ import { useState, useEffect } from "react"
 import { MessageType } from "@/types/chat"
 
 const apiUrl = "http://localhost:8000/api/v1/chat"
-const chatHistoryUrl = "http://localhost:8000/api/v1/chat_history"
+const chatHistoryUrl = "http://localhost:8000/api/v1/chat/history"
 
 function App() {
   const [messages, setMessages] = useState<MessageType[]>([])

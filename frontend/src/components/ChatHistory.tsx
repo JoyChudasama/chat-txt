@@ -9,7 +9,7 @@ interface ChatHistoryProps {
     currentChatId: string;
 }
 
-const apiUrl = "http://localhost:8000/api/v1/chat_history";
+const apiUrl = "http://localhost:8000/api/v1/chat/history";
 
 export function ChatHistory({ messages, setMessages, currentChatId }: ChatHistoryProps) {
     const messagesEndRef = useRef<HTMLDivElement>(null)

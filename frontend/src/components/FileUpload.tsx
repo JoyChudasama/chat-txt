@@ -26,7 +26,7 @@ export function FileUpload({ userId, chatId, onFileUploaded }: FileUploadProps) 
         formData.append("file", selectedFile)
 
         try {
-            const response = await fetch(`http://localhost:8000/api/v1/upload_file?user_id=${userId}&chat_id=${chatId}`, {
+            const response = await fetch(`http://localhost:8000/api/v1/file/upload?user_id=${userId}&chat_id=${chatId}`, {
                 method: "POST",
                 body: formData,
             })

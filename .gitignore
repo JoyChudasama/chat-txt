@@ -47,5 +47,4 @@ htmlcov/
 
 .venv
 uploads
-db
-backend/Untitled-1.ini
+vector_store
