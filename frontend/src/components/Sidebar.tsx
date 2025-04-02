@@ -78,7 +78,7 @@ export function Sidebar({ userId, currentChatId, onChatSelect, onNewChat }: Side
                         variant="ghost"
                         size="icon"
                         onClick={() => setIsOpen(true)}
-                        className="absolute left-4 top-4 z-50 h-8 w-8"
+                        className="absolute left-4 top-4 z-50 h-8 w-8 hover:bg-gray-100 rounded-full"
                     >
                         <Menu className="h-4 w-4" />
                     </Button>
@@ -92,7 +92,7 @@ export function Sidebar({ userId, currentChatId, onChatSelect, onNewChat }: Side
                                     variant="ghost"
                                     size="icon"
                                     onClick={() => setIsOpen(false)}
-                                    className="h-8 w-8"
+                                    className="h-8 w-8 cursor-pointer hover:bg-gray-100 rounded-full"
                                 >
                                     <X className="h-4 w-4" />
                                 </Button>
@@ -131,7 +131,7 @@ export function Sidebar({ userId, currentChatId, onChatSelect, onNewChat }: Side
                     variant="ghost"
                     size="icon"
                     onClick={() => setIsOpen(true)}
-                    className="absolute left-4 top-4 z-50 h-8 w-8"
+                    className="absolute left-4 top-4 z-50 h-8 w-8 cursor-pointer hover:bg-white rounded-full"
                 >
                     <Menu className="h-4 w-4" />
                 </Button>
@@ -145,7 +145,7 @@ export function Sidebar({ userId, currentChatId, onChatSelect, onNewChat }: Side
                                 variant="ghost"
                                 size="icon"
                                 onClick={() => setIsOpen(false)}
-                                className="h-8 w-8"
+                                className="h-8 w-8 cursor-pointer hover:bg-gray-100 rounded-full"
                             >
                                 <X className="h-4 w-4" />
                             </Button>
@@ -172,7 +172,7 @@ export function Sidebar({ userId, currentChatId, onChatSelect, onNewChat }: Side
                                     <Button
                                         variant="ghost"
                                         size="icon"
-                                        className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                                        className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
                                         onClick={() => handleDeleteChat(chat.chat_id)}
                                     >
                                         <Trash2 className="h-4 w-4 text-red-500" />
@@ -185,7 +185,7 @@ export function Sidebar({ userId, currentChatId, onChatSelect, onNewChat }: Side
                     {isOpen && (
                         <div className="p-4 border-t">
                             <Button
-                                className="w-full"
+                                className="w-full cursor-pointer"
                                 onClick={handleNewChat}
                             >
                                 <Plus className="h-4 w-4 mr-2" />
