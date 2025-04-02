@@ -1,9 +1,12 @@
+import os
+import shutil
 from fastapi import APIRouter, HTTPException, Form
 from app.services.chat import get_chat_history
 from app.services.rag_service import get_rag_chain
 from app.models.chat_response import ChatResponse
 from backend.app.services.vector_store_service import get_vector_store
 from app.db.firestore import FIRESTORE_CLIENT
+from app.core.config import UPLOAD_DIR
 
 router = APIRouter()
 
@@ -31,13 +34,13 @@ async def chat_history(user_id: str, chat_id: str):
 @router.delete("/{chat_id}")
 async def delete_chat(chat_id: str, user_id: str):
     try:
-        vector_store = get_vector_store(user_id, chat_id)
-        if vector_store:
-            vector_store.delete(where={"chat_id": chat_id})
+        FIRESTORE_CLIENT.collection(user_id).document(chat_id).delete()
         
-        chats_collection = FIRESTORE_CLIENT.collection(user_id)
-        chats_collection.document(chat_id).delete()
+        upload_dir = os.path.join(UPLOAD_DIR, user_id, chat_id)
         
+        if os.path.exists(upload_dir):
+            shutil.rmtree(upload_dir)
+
         return {"message": "Chat deleted successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) 

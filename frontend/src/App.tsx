@@ -48,7 +48,7 @@ function App() {
   }
 
   const checkChatHistory = async (chatId: string) => {
-    if (!userId) return false
+    if (!userId || !chatId) return false
     
     setIsLoadingHistory(true)
     try {
