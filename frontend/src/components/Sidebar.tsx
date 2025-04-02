@@ -22,7 +22,7 @@ export function Sidebar({ userId, currentChatId, onChatSelect, onNewChat, isUplo
 
     const fetchChats = async () => {
         try {
-            const response = await fetch(`http://localhost:8000/api/v1/chats?user_id=${userId}`)
+            const response = await fetch(`http://localhost:8000/api/v1/session/past?user_id=${userId}`)
             if (!response.ok) throw new Error("Failed to fetch chats")
             const data = await response.json()
             setChats(data)
@@ -34,7 +34,9 @@ export function Sidebar({ userId, currentChatId, onChatSelect, onNewChat, isUplo
     }
 
     useEffect(() => {
-        fetchChats()
+        if (userId) {
+            fetchChats()
+        }
     }, [userId])
 
     const handleNewChat = () => {
