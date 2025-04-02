@@ -18,6 +18,7 @@ function App() {
   const [isFileUploaded, setIsFileUploaded] = useState(false)
   const [currentChatId, setCurrentChatId] = useState<string>("")
   const [isLoadingHistory, setIsLoadingHistory] = useState(false)
+  const [isUploading, setIsUploading] = useState(false)
 
   useEffect(() => {
     const storedUserId = localStorage.getItem('userId')
@@ -132,6 +133,7 @@ function App() {
           currentChatId={currentChatId}
           onChatSelect={handleChatSelect}
           onNewChat={handleNewChat}
+          isUploading={isUploading}
         />
         <div className="flex-1 max-w-[60vw] mx-auto w-full p-4 flex flex-col">
           <div className="flex-1 overflow-hidden">
@@ -146,7 +148,8 @@ function App() {
                 <FileUpload 
                   userId={userId} 
                   chatId={currentChatId}
-                  onFileUploaded={handleFileUploaded} 
+                  onFileUploaded={handleFileUploaded}
+                  onUploadStateChange={setIsUploading}
                 />
               ) : (
                 <ChatHistory 

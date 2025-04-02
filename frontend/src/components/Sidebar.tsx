@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button"
-import { MessageSquare, Plus, X, Trash2, Menu } from "lucide-react"
+import { MessageSquare, Plus, Trash2 } from "lucide-react"
 import { useState, useEffect } from "react"
 
 interface Chat {
@@ -12,10 +12,10 @@ interface SidebarProps {
     currentChatId: string;
     onChatSelect: (chatId: string) => void;
     onNewChat: () => void;
+    isUploading?: boolean;
 }
 
-export function Sidebar({ userId, currentChatId, onChatSelect, onNewChat }: SidebarProps) {
-    const [isOpen, setIsOpen] = useState(true)
+export function Sidebar({ userId, currentChatId, onChatSelect, onNewChat, isUploading = false }: SidebarProps) {
     const [chats, setChats] = useState<Chat[]>([])
     const [hoveredChatId, setHoveredChatId] = useState<string | null>(null)
     const [isLoading, setIsLoading] = useState(true)
@@ -38,9 +38,11 @@ export function Sidebar({ userId, currentChatId, onChatSelect, onNewChat }: Side
     }, [userId])
 
     const handleNewChat = () => {
+        if (isUploading) return;
+        
         const newChat: Chat = {
-            chat_id: `chat${Date.now()}`,
-            title: "New Chat"
+            chat_id: `chat_${Date.now()}`,
+            title: "Chat " + (chats.length + 1)
         }
         
         setChats(prev => [newChat, ...prev])
@@ -49,10 +51,13 @@ export function Sidebar({ userId, currentChatId, onChatSelect, onNewChat }: Side
     }
 
     const handleChatSelect = (chatId: string) => {
+        if (isUploading) return;
         onChatSelect(chatId)
     }
 
     const handleDeleteChat = async (chatId: string) => {
+        if (isUploading) return;
+        
         try {
             const response = await fetch(`http://localhost:8000/api/v1/chat/${chatId}?user_id=${userId}`, {
                 method: "DELETE"
@@ -72,52 +77,29 @@ export function Sidebar({ userId, currentChatId, onChatSelect, onNewChat }: Side
 
     if (isLoading) {
         return (
-            <div className="relative">
-                {!isOpen && (
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setIsOpen(true)}
-                        className="absolute left-4 top-4 z-50 h-8 w-8 hover:bg-gray-100 rounded-full"
-                    >
-                        <Menu className="h-4 w-4" />
-                    </Button>
-                )}
-                <div className={`h-full bg-white border-r transition-all duration-300 ${isOpen ? 'w-64' : 'w-0'}`}>
-                    <div className="h-full flex flex-col">
-                        {isOpen && (
-                            <div className="p-4 border-b flex items-center justify-between">
-                                <h2 className="font-semibold">Sessions</h2>
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => setIsOpen(false)}
-                                    className="h-8 w-8 cursor-pointer hover:bg-gray-100 rounded-full"
-                                >
-                                    <X className="h-4 w-4" />
-                                </Button>
-                            </div>
-                        )}
+            <div className="w-64 bg-white rounded-2xl shadow-lg mx-4 my-6">
+                <div className="h-full flex flex-col">
+                    <div className="p-4 border-b">
+                        <h2 className="font-semibold"></h2>
+                    </div>
 
-                        <div className="flex-1 overflow-y-auto p-2">
-                            <div className="space-y-2">
-                                <div className="h-8 bg-gray-200 rounded animate-pulse"></div>
-                                <div className="h-8 bg-gray-200 rounded animate-pulse"></div>
-                                <div className="h-8 bg-gray-200 rounded animate-pulse"></div>
-                            </div>
+                    <div className="flex-1 overflow-y-auto p-2">
+                        <div className="space-y-2">
+                            <div className="h-8 bg-gray-200 rounded animate-pulse"></div>
+                            <div className="h-8 bg-gray-200 rounded animate-pulse"></div>
+                            <div className="h-8 bg-gray-200 rounded animate-pulse"></div>
                         </div>
+                    </div>
 
-                        {isOpen && (
-                            <div className="p-4 border-t">
-                                <Button
-                                    className="w-full"
-                                    onClick={handleNewChat}
-                                >
-                                    <Plus className="h-4 w-4 mr-2" />
-                                    New Chat
-                                </Button>
-                            </div>
-                        )}
+                    <div className="p-4 border-t">
+                        <Button
+                            className="w-full"
+                            onClick={handleNewChat}
+                            disabled={isUploading}
+                        >
+                            <Plus className="h-4 w-4 mr-2" />
+                            New Chat
+                        </Button>
                     </div>
                 </div>
             </div>
@@ -125,74 +107,54 @@ export function Sidebar({ userId, currentChatId, onChatSelect, onNewChat }: Side
     }
 
     return (
-        <div className="relative">
-            {!isOpen && (
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setIsOpen(true)}
-                    className="absolute left-4 top-4 z-50 h-8 w-8 cursor-pointer hover:bg-white rounded-full"
-                >
-                    <Menu className="h-4 w-4" />
-                </Button>
-            )}
-            <div className={`h-full bg-white border-r transition-all duration-300 ${isOpen ? 'w-64' : 'w-0'}`}>
-                <div className="h-full flex flex-col">
-                    {isOpen && (
-                        <div className="p-4 border-b flex items-center justify-between">
-                            <h2 className="font-semibold">Sessions</h2>
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => setIsOpen(false)}
-                                className="h-8 w-8 cursor-pointer hover:bg-gray-100 rounded-full"
-                            >
-                                <X className="h-4 w-4" />
-                            </Button>
-                        </div>
-                    )}
+        <div className="w-64 bg-white rounded-2xl shadow-lg mx-4 my-6">
+            <div className="h-full flex flex-col">
+                <div className="p-4 border-b">
+                    <h2 className="font-semibold">Sessions</h2>
+                </div>
 
-                    <div className="flex-1 overflow-y-auto p-2">
-                        {chats.map((chat) => (
-                            <div
-                                key={chat.chat_id}
-                                className="relative group"
-                                onMouseEnter={() => setHoveredChatId(chat.chat_id)}
-                                onMouseLeave={() => setHoveredChatId(null)}
-                            >
+                <div className="flex-1 overflow-y-auto p-2">
+                    {chats.map((chat) => (
+                        <div
+                            key={chat.chat_id}
+                            className="relative group mb-1"
+                            onMouseEnter={() => setHoveredChatId(chat.chat_id)}
+                            onMouseLeave={() => setHoveredChatId(null)}
+                        >
+                            <div className="flex items-center gap-2">
                                 <Button
                                     variant={currentChatId === chat.chat_id ? "secondary" : "ghost"}
-                                    className="w-full justify-start gap-2 mb-1"
+                                    className="flex-1 justify-start gap-2 h-9 px-2"
                                     onClick={() => handleChatSelect(chat.chat_id)}
+                                    disabled={isUploading}
                                 >
-                                    <MessageSquare className="h-4 w-4" />
-                                    <span className="truncate">{chat.title}</span>
+                                    <MessageSquare className="h-4 w-4 flex-shrink-0" />
+                                    <span className="truncate text-sm">{chat.title}</span>
                                 </Button>
-                                {hoveredChatId === chat.chat_id && (
+                                {hoveredChatId === chat.chat_id && !isUploading && (
                                     <Button
                                         variant="ghost"
                                         size="icon"
-                                        className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                                        className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer flex-shrink-0"
                                         onClick={() => handleDeleteChat(chat.chat_id)}
                                     >
                                         <Trash2 className="h-4 w-4 text-red-500" />
                                     </Button>
                                 )}
                             </div>
-                        ))}
-                    </div>
-
-                    {isOpen && (
-                        <div className="p-4 border-t">
-                            <Button
-                                className="w-full cursor-pointer"
-                                onClick={handleNewChat}
-                            >
-                                <Plus className="h-4 w-4 mr-2" />
-                                New Session
-                            </Button>
                         </div>
-                    )}
+                    ))}
+                </div>
+
+                <div className="p-4 border-t">
+                    <Button
+                        className="w-full cursor-pointer"
+                        onClick={handleNewChat}
+                        disabled={isUploading}
+                    >
+                        <Plus className="h-4 w-4 mr-2" />
+                        New Session
+                    </Button>
                 </div>
             </div>
         </div>

@@ -77,7 +77,7 @@ export function ChatForm({ setMessages, onSendMessage, isLoading }: ChatFormProp
                                     <Textarea
                                         value={field.value}
                                         placeholder="Start chatting with your PDF"
-                                        className="min-h-[80px] resize-none border-none shadow-none focus-visible:ring-0 text-lg placeholder:text-lg"
+                                        className="min-h-[80px] resize-none border-none shadow-none focus-visible:ring-0 placeholder:text-base text-base"
                                         onFocus={handleOnFocus}
                                         onKeyDown={handleKeyDown}
                                         onChange={(e) => {

@@ -6,9 +6,10 @@ interface FileUploadProps {
     userId: string;
     chatId: string;
     onFileUploaded: () => void;
+    onUploadStateChange: (isUploading: boolean) => void;
 }
 
-export function FileUpload({ userId, chatId, onFileUploaded }: FileUploadProps) {
+export function FileUpload({ userId, chatId, onFileUploaded, onUploadStateChange }: FileUploadProps) {
     const [isLoading, setIsLoading] = useState(false)
     const [selectedFile, setSelectedFile] = useState<File | null>(null)
 
@@ -22,6 +23,7 @@ export function FileUpload({ userId, chatId, onFileUploaded }: FileUploadProps) 
         if (!selectedFile) return
 
         setIsLoading(true)
+        onUploadStateChange(true)
         const formData = new FormData()
         formData.append("file", selectedFile)
 
@@ -42,6 +44,7 @@ export function FileUpload({ userId, chatId, onFileUploaded }: FileUploadProps) 
             console.error(error)
         } finally {
             setIsLoading(false)
+            onUploadStateChange(false)
         }
     }
 
@@ -75,7 +78,7 @@ export function FileUpload({ userId, chatId, onFileUploaded }: FileUploadProps) 
                 <Button
                     onClick={handleUpload}
                     disabled={!selectedFile || isLoading}
-                    className="w-full"
+                    className="w-full cursor-pointer"
                 >
                     {isLoading ? (
                         <>
