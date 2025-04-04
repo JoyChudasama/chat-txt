@@ -3,7 +3,7 @@ import { MessageSquare, Plus, Trash2 } from "lucide-react"
 import { useState, useEffect } from "react"
 
 interface Chat {
-    chat_id: string;
+    session_id: string;
     title: string;
 }
 
@@ -16,16 +16,16 @@ interface SidebarProps {
 }
 
 export function Sidebar({ userId, currentChatId, onChatSelect, onNewChat, isUploading = false }: SidebarProps) {
-    const [chats, setChats] = useState<Chat[]>([])
+    const [sessions, setSessions] = useState<Chat[]>([])
     const [hoveredChatId, setHoveredChatId] = useState<string | null>(null)
     const [isLoading, setIsLoading] = useState(true)
 
     const fetchChats = async () => {
         try {
-            const response = await fetch(`http://localhost:8000/api/v1/session/past?user_id=${userId}`)
+            const response = await fetch(`http://localhost:8000/api/v1/session/history?user_id=${userId}`)
             if (!response.ok) throw new Error("Failed to fetch chats")
             const data = await response.json()
-            setChats(data)
+            setSessions(data)
         } catch (error) {
             console.error("Error fetching chats:", error)
         } finally {
@@ -43,13 +43,13 @@ export function Sidebar({ userId, currentChatId, onChatSelect, onNewChat, isUplo
         if (isUploading) return;
         
         const newChat: Chat = {
-            chat_id: `chat_${Date.now()}`,
-            title: "Chat " + (chats.length + 1)
+            session_id: `chat_${Date.now()}`,
+            title: "Chat " + (sessions.length + 1),
         }
         
-        setChats(prev => [newChat, ...prev])
+        setSessions(prev => [newChat, ...prev])
         onNewChat()
-        onChatSelect(newChat.chat_id)
+        onChatSelect(newChat.session_id)
     }
 
     const handleChatSelect = (chatId: string) => {
@@ -67,7 +67,7 @@ export function Sidebar({ userId, currentChatId, onChatSelect, onNewChat, isUplo
             
             if (!response.ok) throw new Error("Failed to delete chat")
             
-            setChats(chats.filter(chat => chat.chat_id !== chatId))
+            setSessions(sessions.filter(chat => chat.session_id !== chatId))
             
             if (currentChatId === chatId) {
                 onChatSelect("")
@@ -116,29 +116,29 @@ export function Sidebar({ userId, currentChatId, onChatSelect, onNewChat, isUplo
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-2">
-                    {chats.map((chat) => (
+                    {sessions.map((session) => (
                         <div
-                            key={chat.chat_id}
+                            key={session.session_id}
                             className="relative group mb-1"
-                            onMouseEnter={() => setHoveredChatId(chat.chat_id)}
+                            onMouseEnter={() => setHoveredChatId(session.session_id)}
                             onMouseLeave={() => setHoveredChatId(null)}
                         >
                             <div className="flex items-center gap-2">
                                 <Button
-                                    variant={currentChatId === chat.chat_id ? "secondary" : "ghost"}
+                                    variant={currentChatId === session.session_id ? "secondary" : "ghost"}
                                     className="flex-1 justify-start gap-2 h-9 px-2"
-                                    onClick={() => handleChatSelect(chat.chat_id)}
+                                    onClick={() => handleChatSelect(session.session_id)}
                                     disabled={isUploading}
                                 >
                                     <MessageSquare className="h-4 w-4 flex-shrink-0" />
-                                    <span className="truncate text-sm">{chat.title}</span>
+                                    <span className="truncate text-sm">{session.title}</span>
                                 </Button>
-                                {hoveredChatId === chat.chat_id && !isUploading && (
+                                {hoveredChatId === session.session_id && !isUploading && (
                                     <Button
                                         variant="ghost"
                                         size="icon"
                                         className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer flex-shrink-0"
-                                        onClick={() => handleDeleteChat(chat.chat_id)}
+                                        onClick={() => handleDeleteChat(session.session_id)}
                                     >
                                         <Trash2 className="h-4 w-4 text-red-500" />
                                     </Button>
