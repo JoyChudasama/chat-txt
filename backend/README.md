@@ -1,14 +1,25 @@
 # ChatPDF Backend
 
-A FastAPI-based backend service that enables chat interactions with PDF documents using RAG (Retrieval Augmented Generation) and Ollama.
+The backend part of Chat PDF, built with FastAPI, Python, and Langchain.
 
 ## Features
 
-- PDF document processing and storage
-- Chat history management with Firestore
-- RAG-based question answering using Ollama
-- Vector storage using Chroma
-- RESTful API endpoints for chat and file operations
+- 🚀 FastAPI for high-performance API
+- 📄 PDF processing with Langchain
+- 💬 Chat history management with Firestore
+- 🤖 Local LLM integration with Ollama
+- 📚 Session management
+- 🔍 Context-aware responses
+
+## Tech Stack
+
+- Python 3.9+
+- FastAPI
+- Langchain
+- Firebase/Firestore
+- Ollama (Local LLM)
+- PyPDF2
+- Pydantic
 
 ## Project Structure
 
@@ -18,78 +29,54 @@ backend/
 │   ├── api/
 │   │   └── v1/
 │   │       ├── endpoints/
+│   │       │   ├── auth.py
 │   │       │   ├── chat.py
 │   │       │   └── file_upload.py
+│   │       │   └── session.py
 │   │       └── routes.py
 │   ├── core/
 │   │   ├── app_setup.py
-│   │   ├── config.py
-│   │   └── __init__.py
+│   │   └── config.py
 │   ├── db/
-│   │   ├── firestore.py
-│   │   └── __init__.py
+│   │   └── firestore.py
 │   ├── models/
-│   │   ├── chat_messge.py
+│   │   ├── chat_message.py
 │   │   ├── chat_response.py
-│   │   ├── file_upload_response.py
-│   │   └── __init__.py
+│   │   └── file_upload_response.py
 │   ├── prompts/
-│   │   ├── qa_prompts.py
-│   │   └── __init__.py
+│   │   └── qa_prompts.py
 │   ├── services/
-│   │   ├── chat_service.py
-│   │   ├── file_service.py
-│   │   ├── rag_service.py
-│   │   ├── vector_store_service.py
-│   │   └── __init__.py    
-│   ├── main.py
-│   └── __init__.py
-├── .env
-├── .env.example
-└── requirements.txt
-```
-
-## Prerequisites
-
-- Python 3.8+
-- Ollama installed and running locally
-- Google Cloud Project with Firestore enabled
-- OpenAI API key for Embeddings
-
-## Environment Variables
-
-Create a `.env` file in the backend directory with the following variables:
-
-```env
-OPENAI_API_KEY=your_openai_api_key
-OPENAI_EMBEDDING_MODEL=text-embedding-3-small
-FIRESTORE_PROJECT_ID=your_project_id
-ALLOWED_ORIGINS=[your_frontend_server]
+│   │   ├── file_serivce.py
+│   │   ├── rag_serivce.py
+│   │   ├── session_service.py
+│   │   └── vector_store_service.py
+│   └── main.py
+├── requirements.txt
+├── README.md
+└── .env.example
 ```
 
 ## Installation
 
-1. Create and activate a virtual environment:
+1. Navigate to the backend directory:
 ```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+cd backend
 ```
 
-2. Install dependencies:
+2. Create a virtual environment:
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows: .\venv\Scripts\activate
+```
+
+3. Install dependencies:
 ```bash
 pip install -r requirements.txt
 ```
 
-3. Set up Google Cloud credentials:
+4. Create a `.env` file using `.env.example`
 
-## Running the Application
-
-1. Start Ollama locally:
-```bash
-ollama serve
-```
-
-2. Run the FastAPI application:
+5. Start the server:
 ```bash
 fastapi dev /backend/app/main.py
 ```
@@ -98,26 +85,62 @@ The API will be available at `http://localhost:8000`
 
 ## API Endpoints
 
-### Chat Endpoints
+### Session Management
+- `GET /api/v1/session/past?user_id={user_id}`
+  - Get all past sessions for a user
+  - Returns: List of sessions with titles and IDs
 
-- `POST /api/v1/chat`
-  - Upload a message and get AI response
-  - Parameters:
-    - `user_id`: User identifier
-    - `chat_id`: Chat session identifier
-    - `user_message`: Message content
+- `POST /api/v1/session`
+  - Create a new session
+  - Body: `{ "user_id": string, "title": string }`
+  - Returns: Session ID and confirmation
 
-- `GET /api/v1/chat_history`
-  - Retrieve chat history for a session
-  - Parameters:
-    - `user_id`: User identifier
-    - `chat_id`: Chat session identifier
+- `DELETE /api/v1/session/{session_id}?user_id={user_id}`
+  - Delete a session and its messages
+  - Returns: Success message
 
-### File Upload Endpoints
-
+### File Operations
 - `POST /api/v1/upload_file`
-  - Upload a PDF file for processing
-  - Parameters:
-    - `user_id`: User identifier
-    - `chat_id`: Chat session identifier
-    - `file`: PDF file
+  - Upload and process a PDF file
+  - Form Data: `file` (PDF), `chat_id` (string)
+  - Returns: Success message
+
+### Chat Operations
+- `POST /api/v1/chat`
+  - Send a message and get AI response
+  - Body: `{ "user_id": string, "chat_id": string, "message": string }`
+  - Returns: AI response
+
+- `GET /api/v1/chat/{chat_id}?user_id={user_id}`
+  - Get chat history for a session
+  - Returns: List of messages
+
+## Database Structure
+
+### Firestore Collections
+- `{user_id}_sessions`
+  - Document: `{session_id}`
+    - Fields: title, created_at, session_id
+
+- `{user_id}_messages`
+  - Document: `{session_id}`
+    - Subcollection: messages
+      - Document: `{message_id}`
+        - Fields: content, type, timestamp
+
+## Services
+
+### Chat Service
+- Handles message processing
+- Manages chat history
+- Integrates with Ollama for responses
+
+### Session Service
+- Manages user sessions
+- Handles session creation/deletion
+- Maintains session metadata
+
+### Upload Service
+- Processes PDF files
+- Creates document embeddings
+- Manages file storage
