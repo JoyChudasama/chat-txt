@@ -2,7 +2,7 @@ from fastapi import APIRouter, File, UploadFile
 from app.models.file_upload_response import FileUploadResponse
 from app.services.file_service import handle_file
 from app.services.vector_store_service import prepare_vector_store
-from app.services.session import create_session
+from backend.app.services.session_service import create_session
 
 router = APIRouter()
 

@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException
-from app.services.session import get_session_history, delete_session, get_session_messages
+from backend.app.services.session_service import get_session_history, delete_session, get_session_messages
 
 router = APIRouter()
 

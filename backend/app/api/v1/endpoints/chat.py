@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Form
-from app.services.session import get_session_messages
+from backend.app.services.session_service import get_session_messages
 from app.services.rag_service import get_rag_chain
 from app.models.chat_response import ChatResponse
 
