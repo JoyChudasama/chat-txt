@@ -4,10 +4,9 @@ from langchain_community.document_loaders import TextLoader
 from langchain_chroma import Chroma
 from langchain_openai import OpenAIEmbeddings
 from langchain.vectorstores.base import VectorStoreRetriever
-
 from app.core.config import VECTOR_STORE_DIR, OPENAI_API_KEY, OPENAI_EMBEDDING_MODEL
 
-async def prepare_vector_store(user_id: str, chat_id: str, file_path: str)->Chroma:
+async def prepare_vector_store(user_id: str, session_id: str, file_path: str)->Chroma:
     """Prepare the vector database with document embeddings."""
     
     documents = []
@@ -21,7 +20,7 @@ async def prepare_vector_store(user_id: str, chat_id: str, file_path: str)->Chro
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=800, chunk_overlap=300)
     docs = text_splitter.split_documents(documents)
 
-    persistent_directory = os.path.join(VECTOR_STORE_DIR, user_id, chat_id)
+    persistent_directory = os.path.join(VECTOR_STORE_DIR, user_id, session_id)
     embeddings = OpenAIEmbeddings(
         model=OPENAI_EMBEDDING_MODEL,
         api_key=OPENAI_API_KEY
@@ -29,9 +28,9 @@ async def prepare_vector_store(user_id: str, chat_id: str, file_path: str)->Chro
 
     return Chroma.from_documents(docs, embeddings, persist_directory=persistent_directory)
 
-def get_vector_store(user_id:str, chat_id:str)->Chroma|None:   
+def get_vector_store(user_id:str, session_id:str)->Chroma|None:   
     """Get the vector store for a given user and chat."""
-    persistent_directory = os.path.join(VECTOR_STORE_DIR, user_id, chat_id)
+    persistent_directory = os.path.join(VECTOR_STORE_DIR, user_id, session_id)
     embeddings = OpenAIEmbeddings(
         model=os.getenv("OPENAI_EMBEDDING_MODEL"), 
         api_key=os.getenv("OPENAI_API_KEY")
