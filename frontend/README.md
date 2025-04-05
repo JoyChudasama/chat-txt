@@ -1,4 +1,4 @@
-# Chat PDF Frontend
+# ChatPDF Frontend
 
 The frontend part of Chat PDF, built with React, TypeScript, and Tailwind CSS.
 
