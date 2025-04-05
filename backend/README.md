@@ -102,18 +102,14 @@ The API will be available at `http://localhost:8000`
 ### File Operations
 - `POST /api/v1/upload_file`
   - Upload and process a PDF file
-  - Form Data: `file` (PDF), `chat_id` (string)
+  - Form Data: `file` (PDF), `session_id` (string)
   - Returns: Success message
 
 ### Chat Operations
 - `POST /api/v1/chat`
   - Send a message and get AI response
-  - Body: `{ "user_id": string, "chat_id": string, "message": string }`
+  - Body: `{ "user_id": string, "session_id": string, "message": string }`
   - Returns: AI response
-
-- `GET /api/v1/chat/{chat_id}?user_id={user_id}`
-  - Get chat history for a session
-  - Returns: List of messages
 
 ## Database Structure
 
