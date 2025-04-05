@@ -9,7 +9,7 @@ interface ChatHistoryProps {
     currentChatId: string;
 }
 
-const apiUrl = "http://localhost:8000/api/v1/chat/history";
+const sessionMessagesUrl = "http://localhost:8000/api/v1/session/messages";
 
 export function ChatHistory({ messages, setMessages, currentChatId }: ChatHistoryProps) {
     const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -23,7 +23,7 @@ export function ChatHistory({ messages, setMessages, currentChatId }: ChatHistor
         const user_id = localStorage.getItem('userId') || '';
         const fetchChatHistory = async () => {
             try {
-                const response = await fetch(apiUrl + "?user_id=" + user_id + "&chat_id=" + currentChatId);
+                const response = await fetch(sessionMessagesUrl + "?user_id=" + user_id + "&session_id=" + currentChatId);
                 if (!response.ok) throw new Error("Failed to fetch chat history");
                 
                 const data = await response.json();

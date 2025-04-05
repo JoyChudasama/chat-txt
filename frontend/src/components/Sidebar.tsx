@@ -9,13 +9,13 @@ interface Chat {
 
 interface SidebarProps {
     userId: string;
-    currentChatId: string;
-    onChatSelect: (chatId: string) => void;
+    currentSessionId: string;
+    onChatSelect: (sessionId: string) => void;
     onNewChat: () => void;
     isUploading?: boolean;
 }
 
-export function Sidebar({ userId, currentChatId, onChatSelect, onNewChat, isUploading = false }: SidebarProps) {
+export function Sidebar({ userId, currentSessionId: currentSessionId, onChatSelect, onNewChat, isUploading = false }: SidebarProps) {
     const [sessions, setSessions] = useState<Chat[]>([])
     const [hoveredChatId, setHoveredChatId] = useState<string | null>(null)
     const [isLoading, setIsLoading] = useState(true)
@@ -43,8 +43,8 @@ export function Sidebar({ userId, currentChatId, onChatSelect, onNewChat, isUplo
         if (isUploading) return;
         
         const newChat: Chat = {
-            session_id: `chat_${Date.now()}`,
-            title: "Chat " + (sessions.length + 1),
+            session_id: `session_${Date.now()}`,
+            title: "Session " + (sessions.length + 1),
         }
         
         setSessions(prev => [newChat, ...prev])
@@ -52,24 +52,24 @@ export function Sidebar({ userId, currentChatId, onChatSelect, onNewChat, isUplo
         onChatSelect(newChat.session_id)
     }
 
-    const handleChatSelect = (chatId: string) => {
+    const handleChatSelect = (sessionId: string) => {
         if (isUploading) return;
-        onChatSelect(chatId)
+        onChatSelect(sessionId)
     }
 
-    const handleDeleteChat = async (chatId: string) => {
+    const handleDeleteChat = async (sessionId: string) => {
         if (isUploading) return;
         
         try {
-            const response = await fetch(`http://localhost:8000/api/v1/chat/${chatId}?user_id=${userId}`, {
+            const response = await fetch(`http://localhost:8000/api/v1/session/${sessionId}?user_id=${userId}`, {
                 method: "DELETE"
             })
             
             if (!response.ok) throw new Error("Failed to delete chat")
             
-            setSessions(sessions.filter(chat => chat.session_id !== chatId))
+            setSessions(sessions.filter(chat => chat.session_id !== sessionId))
             
-            if (currentChatId === chatId) {
+            if (currentSessionId === sessionId) {
                 onChatSelect("")
             }
         } catch (error) {
@@ -125,7 +125,7 @@ export function Sidebar({ userId, currentChatId, onChatSelect, onNewChat, isUplo
                         >
                             <div className="flex items-center gap-2">
                                 <Button
-                                    variant={currentChatId === session.session_id ? "secondary" : "ghost"}
+                                    variant={currentSessionId === session.session_id ? "secondary" : "ghost"}
                                     className="flex-1 justify-start gap-2 h-9 px-2"
                                     onClick={() => handleChatSelect(session.session_id)}
                                     disabled={isUploading}

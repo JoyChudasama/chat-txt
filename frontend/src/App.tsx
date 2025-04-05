@@ -8,8 +8,8 @@ import { Sidebar } from "@/components/Sidebar"
 import { useState, useEffect } from "react"
 import { MessageType } from "@/types/chat"
 
-const apiUrl = "http://localhost:8000/api/v1/chat"
-const chatHistoryUrl = "http://localhost:8000/api/v1/chat/history"
+const chatUrl = "http://localhost:8000/api/v1/chat"
+const chatHistoryUrl = "http://localhost:8000/api/v1/session/messages"
 
 function App() {
   const [messages, setMessages] = useState<MessageType[]>([])
@@ -53,7 +53,7 @@ function App() {
     
     setIsLoadingHistory(true)
     try {
-      const response = await fetch(`${chatHistoryUrl}?user_id=${userId}&chat_id=${chatId}`)
+      const response = await fetch(`${chatHistoryUrl}?user_id=${userId}&session_id=${chatId}`)
       if (!response.ok) throw new Error("Failed to fetch chat history")
       const data = await response.json()
       return data.length > 0
@@ -90,7 +90,7 @@ function App() {
     formData.append("user_message", message)
 
     try {
-      const response = await fetch(`${apiUrl}?user_id=${userId}&chat_id=${currentChatId}`, {
+      const response = await fetch(`${chatUrl}?user_id=${userId}&session_id=${currentChatId}`, {
         method: "POST",
         body: formData,
       })
@@ -130,7 +130,7 @@ function App() {
       <div className="h-[calc(100vh-4rem)] flex">
         <Sidebar 
           userId={userId}
-          currentChatId={currentChatId}
+          currentSessionId={currentChatId}
           onChatSelect={handleChatSelect}
           onNewChat={handleNewChat}
           isUploading={isUploading}
@@ -147,7 +147,7 @@ function App() {
               ) : !isFileUploaded ? (
                 <FileUpload 
                   userId={userId} 
-                  chatId={currentChatId}
+                  sessionId={currentChatId}
                   onFileUploaded={handleFileUploaded}
                   onUploadStateChange={setIsUploading}
                 />

@@ -4,12 +4,12 @@ import { useState } from "react"
 
 interface FileUploadProps {
     userId: string;
-    chatId: string;
+    sessionId: string;
     onFileUploaded: () => void;
     onUploadStateChange: (isUploading: boolean) => void;
 }
 
-export function FileUpload({ userId, chatId, onFileUploaded, onUploadStateChange }: FileUploadProps) {
+export function FileUpload({ userId, sessionId: sessionId, onFileUploaded, onUploadStateChange }: FileUploadProps) {
     const [isLoading, setIsLoading] = useState(false)
     const [selectedFile, setSelectedFile] = useState<File | null>(null)
 
@@ -28,7 +28,7 @@ export function FileUpload({ userId, chatId, onFileUploaded, onUploadStateChange
         formData.append("file", selectedFile)
 
         try {
-            const response = await fetch(`http://localhost:8000/api/v1/file/upload?user_id=${userId}&chat_id=${chatId}`, {
+            const response = await fetch(`http://localhost:8000/api/v1/file/upload?user_id=${userId}&session_id=${sessionId}`, {
                 method: "POST",
                 body: formData,
             })
