@@ -1,4 +1,4 @@
-# Chat PDF
+# ChatPDF
 
 A modern web application that allows users to chat with their PDF documents using AI. Built with React, FastAPI, and Langchain.
 
