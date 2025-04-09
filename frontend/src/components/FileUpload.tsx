@@ -51,8 +51,8 @@ export function FileUpload({ userId, sessionId: sessionId, onFileUploaded, onUpl
     return (
         <div className="w-full h-full flex flex-col items-center justify-center gap-4 p-8">
             <div className="text-center space-y-2">
-                <h2 className="text-2xl font-semibold">Upload PDF to Start Chatting</h2>
-                <p className="text-gray-500">Select a PDF file to begin the conversation</p>
+                <h2 className="text-2xl font-semibold">Upload Text File to Start Chatting</h2>
+                <p className="text-gray-500">Select a Text file to begin the conversation</p>
             </div>
             
             <div className="w-full max-w-md space-y-4">
@@ -63,12 +63,12 @@ export function FileUpload({ userId, sessionId: sessionId, onFileUploaded, onUpl
                 >
                     <FileUp className="h-8 w-8" />
                     <span className="text-lg font-medium">
-                        {selectedFile ? selectedFile.name : "Click to upload PDF"}
+                        {selectedFile ? selectedFile.name : "Click to upload Text File"}
                     </span>
                     <input
                         type="file"
                         id="file-upload"
-                        accept=".pdf"
+                        accept=".txt"
                         onChange={handleFileChange}
                         className="hidden"
                         disabled={isLoading}
