@@ -3,6 +3,7 @@ import { Message } from "./Message"
 import { MessageType } from "@/types/chat"
 import { Loader2 } from "lucide-react"
 import { toast } from 'react-hot-toast'
+import { useWebSocket } from "@/contexts/WebSocketContext"
 
 interface ChatHistoryProps {
     messages: MessageType[];
@@ -15,6 +16,7 @@ const sessionMessagesUrl = "http://localhost:8000/api/v1/session/messages";
 export function ChatHistory({ messages, setMessages, currentChatId }: ChatHistoryProps) {
     const messagesEndRef = useRef<HTMLDivElement>(null)
     const [isLoading, setIsLoading] = useState(true)
+    const { isConnected } = useWebSocket();
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -67,6 +69,11 @@ export function ChatHistory({ messages, setMessages, currentChatId }: ChatHistor
     return (
         <div className="h-[calc(100vh-12rem)] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             <div className="p-4">
+                {!isConnected && (
+                    <div className="text-center text-red-500 mb-4">
+                        Connection lost. Attempting to reconnect...
+                    </div>
+                )}
                 {messages.map((msg, index) => (
                     <Message key={index} message={msg} />
                 ))}

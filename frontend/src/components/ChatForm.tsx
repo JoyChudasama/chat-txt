@@ -7,9 +7,10 @@ import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { Form } from "@/components/ui/form"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Send } from "lucide-react"
 import { MessageType } from "@/types/chat"
+import { useWebSocket } from "@/contexts/WebSocketContext"
 
 const formSchema = z.object({
     userMessageInput: z.string(),
@@ -17,12 +18,13 @@ const formSchema = z.object({
 
 interface ChatFormProps {
     setMessages: React.Dispatch<React.SetStateAction<MessageType[]>>;
-    onSendMessage: (message: string) => void;
     isLoading: boolean;
+    setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-export function ChatForm({ setMessages, onSendMessage, isLoading }: ChatFormProps) {
+export function ChatForm({ setMessages, isLoading, setIsLoading }: ChatFormProps) {
     const [isMessageEmpty, setIsMessageEmpty] = useState(true);
+    const { sendMessage, lastMessage } = useWebSocket();
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -30,6 +32,16 @@ export function ChatForm({ setMessages, onSendMessage, isLoading }: ChatFormProp
             userMessageInput: "",
         },
     })
+
+    useEffect(() => {
+        if (lastMessage) {
+            setMessages(prevMessages => {
+                const messagesWithoutThinking = prevMessages.filter(msg => msg.type !== 'thinking');
+                return [...messagesWithoutThinking, { type: 'ai', content: lastMessage.ai_message }];
+            });
+            setIsLoading(false);
+        }
+    }, [lastMessage, setMessages, setIsLoading]);
 
     async function handleSubmit(values: z.infer<typeof formSchema>) {
         if (isLoading) return;
@@ -43,7 +55,8 @@ export function ChatForm({ setMessages, onSendMessage, isLoading }: ChatFormProp
         const thinkingMessage: MessageType = { type: "thinking", content: "" }
         setMessages(oldMessages => [...oldMessages, thinkingMessage])
 
-        onSendMessage(values.userMessageInput);
+        setIsLoading(true);
+        sendMessage(values.userMessageInput);
     }
 
     const handleKeyDown = (e: React.KeyboardEvent) => {

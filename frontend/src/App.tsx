@@ -8,6 +8,7 @@ import { Sidebar } from "@/components/Sidebar"
 import { useState, useEffect } from "react"
 import { MessageType } from "@/types/chat"
 import { Toaster, toast } from 'react-hot-toast'
+import { WebSocketProvider } from "@/contexts/WebSocketContext"
 
 const chatUrl = "http://localhost:8000/api/v1/chat"
 const chatHistoryUrl = "http://localhost:8000/api/v1/session/messages"
@@ -156,11 +157,18 @@ function App() {
                   onUploadStateChange={setIsUploading}
                 />
               ) : (
-                <ChatHistory 
-                  messages={messages} 
-                  setMessages={setMessages}
-                  currentChatId={currentChatId}
-                />
+                <WebSocketProvider userId={userId} sessionId={currentChatId}>
+                  <ChatHistory 
+                    messages={messages} 
+                    setMessages={setMessages}
+                    currentChatId={currentChatId}
+                  />
+                  <ChatForm 
+                    setMessages={setMessages} 
+                    isLoading={isLoading}
+                    setIsLoading={setIsLoading}
+                  />
+                </WebSocketProvider>
               )
             ) : (
               <div className="h-full flex items-center justify-center">
@@ -168,13 +176,6 @@ function App() {
               </div>
             )}
           </div>
-          {currentChatId && isFileUploaded && (
-            <ChatForm 
-              setMessages={setMessages} 
-              onSendMessage={onSendMessage}
-              isLoading={isLoading}
-            />
-          )}
         </div>
       </div>
     </div>
