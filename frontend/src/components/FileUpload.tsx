@@ -10,6 +10,14 @@ interface FileUploadProps {
     onUploadStateChange: (isUploading: boolean) => void;
 }
 
+interface FileUploadResponse {
+    content: {
+        type: string;
+        message: string;
+        file_name: string;
+    };
+}
+
 export function FileUpload({ userId, sessionId: sessionId, onFileUploaded, onUploadStateChange }: FileUploadProps) {
     const [isLoading, setIsLoading] = useState(false)
     const [selectedFile, setSelectedFile] = useState<File | null>(null)
@@ -34,14 +42,16 @@ export function FileUpload({ userId, sessionId: sessionId, onFileUploaded, onUpl
                 body: formData,
             })
 
+            const fileUploadResponse = await response.json() as FileUploadResponse
+
+
             if (!response.ok) {
-                const errorData = await response.json()
-                throw new Error(errorData.detail || "Failed to upload file")
+                throw new Error(fileUploadResponse.content.message || "Failed to upload file")
             }
 
             await new Promise(resolve => setTimeout(resolve, 1000))
             onFileUploaded()
-            toast.success("File uploaded successfully")
+            toast.success(fileUploadResponse.content.message)
         } catch (error) {
             toast.error(error instanceof Error ? error.message : "Failed to upload file")
         } finally {

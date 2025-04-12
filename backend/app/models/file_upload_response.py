@@ -2,5 +2,5 @@ from pydantic import BaseModel
 from typing import Optional
 
 class FileUploadResponse(BaseModel):
-    file_path: str
+    content: dict[str, str, str]
     error: Optional[str] = None 

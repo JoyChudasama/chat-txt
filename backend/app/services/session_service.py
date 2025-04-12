@@ -2,7 +2,7 @@ from langchain_google_firestore import FirestoreChatMessageHistory
 from app.db.firestore import FIRESTORE_CLIENT
 from datetime import datetime
 
-def create_session(user_id: str, session_id: str)->dict:
+def create_session(user_id: str, session_id: str, file_name: str)->dict:
     """Create a new session in the database."""
     
     collection_name = f"{user_id}_sessions"
@@ -10,6 +10,7 @@ def create_session(user_id: str, session_id: str)->dict:
         "title": "New Session",
         "session_id": session_id,
         "created_at": datetime.now(),
+        "file_name": file_name
     })
     return {"message": "Session created successfully"}
 
