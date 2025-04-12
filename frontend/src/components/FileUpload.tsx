@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button"
 import { FileUp, Loader2 } from "lucide-react"
 import { useState } from "react"
+import { toast } from 'react-hot-toast'
 
 interface FileUploadProps {
     userId: string;
@@ -35,13 +36,16 @@ export function FileUpload({ userId, sessionId: sessionId, onFileUploaded, onUpl
 
             if (!response.ok) {
                 const errorData = await response.json()
+                console.log(errorData)
                 throw new Error(errorData.detail || "Failed to upload file")
             }
 
             await new Promise(resolve => setTimeout(resolve, 1000))
             onFileUploaded()
+            toast.success("File uploaded successfully")
         } catch (error) {
             console.error(error)
+            toast.error(error instanceof Error ? error.message : "Failed to upload file")
         } finally {
             setIsLoading(false)
             onUploadStateChange(false)

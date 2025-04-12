@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button"
 import { MessageSquare, Plus, Trash2 } from "lucide-react"
 import { useState, useEffect } from "react"
+import { toast } from 'react-hot-toast'
 
 interface Chat {
     session_id: string;
@@ -23,11 +24,15 @@ export function Sidebar({ userId, currentSessionId: currentSessionId, onChatSele
     const fetchChats = async () => {
         try {
             const response = await fetch(`http://localhost:8000/api/v1/session/history?user_id=${userId}`)
-            if (!response.ok) throw new Error("Failed to fetch chats")
+            if (!response.ok) {
+                const errorData = await response.json()
+                throw new Error(errorData.error || "Failed to fetch chats")
+            }
             const data = await response.json()
             setSessions(data)
         } catch (error) {
             console.error("Error fetching chats:", error)
+            toast.error(error instanceof Error ? error.message : "Failed to fetch chats")
         } finally {
             setIsLoading(false)
         }
@@ -65,15 +70,20 @@ export function Sidebar({ userId, currentSessionId: currentSessionId, onChatSele
                 method: "DELETE"
             })
             
-            if (!response.ok) throw new Error("Failed to delete chat")
+            if (!response.ok) {
+                const errorData = await response.json()
+                throw new Error(errorData.detail || "Failed to delete chat")
+            }
             
             setSessions(sessions.filter(chat => chat.session_id !== sessionId))
             
             if (currentSessionId === sessionId) {
                 onChatSelect("")
             }
+            toast.success("Session deleted successfully")
         } catch (error) {
             console.error("Error deleting chat:", error)
+            toast.error(error instanceof Error ? error.message : "Failed to delete chat")
         }
     }
 

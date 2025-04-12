@@ -7,6 +7,7 @@ import { FileUpload } from "@/components/FileUpload"
 import { Sidebar } from "@/components/Sidebar"
 import { useState, useEffect } from "react"
 import { MessageType } from "@/types/chat"
+import { Toaster, toast } from 'react-hot-toast'
 
 const chatUrl = "http://localhost:8000/api/v1/chat"
 const chatHistoryUrl = "http://localhost:8000/api/v1/session/messages"
@@ -95,7 +96,10 @@ function App() {
         body: formData,
       })
 
-      if (!response.ok) throw new Error("Failed to send message")
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.detail || "Failed to send message")
+      }
 
       const data = await response.json()
       setMessages(oldMessages => {
@@ -113,7 +117,7 @@ function App() {
         ]
       })
     } catch (error) {
-      console.error(error)
+      toast.error(error instanceof Error ? error.message : "Failed to send message")
       setMessages(oldMessages => oldMessages.filter(msg => msg.type !== "thinking"))
     } finally {
       setIsLoading(false)
@@ -126,6 +130,7 @@ function App() {
   
   return (
     <div className="h-screen overflow-hidden">
+      <Toaster position="top-right" />
       <Navbar onLogout={handleLogout} />
       <div className="h-[calc(100vh-4rem)] flex">
         <Sidebar 

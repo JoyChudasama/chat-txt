@@ -15,7 +15,5 @@ async def messages(session_id: str, user_id: str):
 async def delete(session_id: str, user_id: str):
     try:
         delete_session(user_id, session_id)
-        return {"message": "Session deleted successfully"}
     except Exception as e:
-        print(str(e))
         raise HTTPException(status_code=500, detail=str(e)) 

@@ -17,4 +17,4 @@ async def file_upload(user_id: str, session_id: str, file: UploadFile = File(...
         await prepare_vector_store(user_id, session_id, file_path)
         return {"file_path": file_path}
     except Exception as e:
-        return {"error": str(e)}
+        raise HTTPException(status_code=500, detail=str(e))

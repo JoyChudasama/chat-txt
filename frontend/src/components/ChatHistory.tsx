@@ -2,6 +2,7 @@ import { useRef, useEffect, useState } from "react"
 import { Message } from "./Message"
 import { MessageType } from "@/types/chat"
 import { Loader2 } from "lucide-react"
+import { toast } from 'react-hot-toast'
 
 interface ChatHistoryProps {
     messages: MessageType[];
@@ -24,7 +25,10 @@ export function ChatHistory({ messages, setMessages, currentChatId }: ChatHistor
         const fetchChatHistory = async () => {
             try {
                 const response = await fetch(sessionMessagesUrl + "?user_id=" + user_id + "&session_id=" + currentChatId);
-                if (!response.ok) throw new Error("Failed to fetch chat history");
+                if (!response.ok) {
+                    const errorData = await response.json()
+                    throw new Error(errorData.detail || "Failed to fetch chat history")
+                }
                 
                 const data = await response.json();
                 const formattedMessages: MessageType[] = data.map((msg: any) => ({
@@ -35,6 +39,7 @@ export function ChatHistory({ messages, setMessages, currentChatId }: ChatHistor
                 setMessages(formattedMessages);
             } catch (error) {
                 console.error("Error fetching chat history:", error);
+                toast.error(error instanceof Error ? error.message : "Failed to fetch chat history")
             } finally {
                 setIsLoading(false);
             }
