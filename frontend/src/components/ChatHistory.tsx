@@ -38,7 +38,6 @@ export function ChatHistory({ messages, setMessages, currentChatId }: ChatHistor
                 
                 setMessages(formattedMessages);
             } catch (error) {
-                console.error("Error fetching chat history:", error);
                 toast.error(error instanceof Error ? error.message : "Failed to fetch chat history")
             } finally {
                 setIsLoading(false);

@@ -59,7 +59,6 @@ function App() {
       const data = await response.json()
       return data.length > 0
     } catch (error) {
-      console.error("Error checking chat history:", error)
       return false
     } finally {
       setIsLoadingHistory(false)

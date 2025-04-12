@@ -31,7 +31,6 @@ export function Sidebar({ userId, currentSessionId: currentSessionId, onChatSele
             const data = await response.json()
             setSessions(data)
         } catch (error) {
-            console.error("Error fetching chats:", error)
             toast.error(error instanceof Error ? error.message : "Failed to fetch chats")
         } finally {
             setIsLoading(false)
@@ -72,7 +71,7 @@ export function Sidebar({ userId, currentSessionId: currentSessionId, onChatSele
             
             if (!response.ok) {
                 const errorData = await response.json()
-                throw new Error(errorData.detail || "Failed to delete chat")
+                throw new Error(errorData.detail || "Failed to delete Session")
             }
             
             setSessions(sessions.filter(chat => chat.session_id !== sessionId))
@@ -82,8 +81,7 @@ export function Sidebar({ userId, currentSessionId: currentSessionId, onChatSele
             }
             toast.success("Session deleted successfully")
         } catch (error) {
-            console.error("Error deleting chat:", error)
-            toast.error(error instanceof Error ? error.message : "Failed to delete chat")
+            toast.error(error instanceof Error ? error.message : "Failed to delete Session")
         }
     }
 

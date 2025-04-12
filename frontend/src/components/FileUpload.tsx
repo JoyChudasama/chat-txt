@@ -36,7 +36,6 @@ export function FileUpload({ userId, sessionId: sessionId, onFileUploaded, onUpl
 
             if (!response.ok) {
                 const errorData = await response.json()
-                console.log(errorData)
                 throw new Error(errorData.detail || "Failed to upload file")
             }
 
@@ -44,7 +43,6 @@ export function FileUpload({ userId, sessionId: sessionId, onFileUploaded, onUpl
             onFileUploaded()
             toast.success("File uploaded successfully")
         } catch (error) {
-            console.error(error)
             toast.error(error instanceof Error ? error.message : "Failed to upload file")
         } finally {
             setIsLoading(false)
