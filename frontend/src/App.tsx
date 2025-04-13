@@ -166,12 +166,13 @@ function App() {
                     isLoading={isLoading}
                     setIsLoading={setIsLoading}
                     onLogout={handleLogout}
+                    isFileUploaded={isFileUploaded}
                   />
                 </WebSocketProvider>
               )
             ) : (
               <div className="h-full flex items-center justify-center">
-                <p className="text-gray-500">Select a chat or create a new one to start</p>
+                <p className="text-gray-500">Select a session or create a new one to start</p>
               </div>
             )}
           </div>
@@ -188,7 +189,8 @@ function ChatComponents({
   currentChatId, 
   isLoading, 
   setIsLoading,
-  onLogout 
+  onLogout,
+  isFileUploaded
 }: { 
   messages: MessageType[]; 
   setMessages: React.Dispatch<React.SetStateAction<MessageType[]>>;
@@ -196,6 +198,7 @@ function ChatComponents({
   isLoading: boolean;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   onLogout: () => void;
+  isFileUploaded: boolean;
 }) {
   const { closeConnection } = useWebSocket();
 
@@ -210,6 +213,7 @@ function ChatComponents({
         messages={messages} 
         setMessages={setMessages}
         currentChatId={currentChatId}
+        isFileUploaded={isFileUploaded}
       />
       <ChatForm 
         setMessages={setMessages} 

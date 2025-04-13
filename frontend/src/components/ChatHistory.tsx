@@ -1,19 +1,22 @@
+"use client"
+
 import { useRef, useEffect, useState } from "react"
-import { Message } from "./Message"
 import { MessageType } from "@/types/chat"
 import { Loader2 } from "lucide-react"
 import { toast } from 'react-hot-toast'
 import { useWebSocket } from "@/contexts/WebSocketContext"
+import { ChatMessage } from "./ChatMessage"
 
 interface ChatHistoryProps {
     messages: MessageType[];
     setMessages: React.Dispatch<React.SetStateAction<MessageType[]>>;
     currentChatId: string;
+    isFileUploaded: boolean;
 }
 
 const sessionMessagesUrl = "http://localhost:8000/api/v1/session/messages";
 
-export function ChatHistory({ messages, setMessages, currentChatId }: ChatHistoryProps) {
+export function ChatHistory({ messages, setMessages, currentChatId, isFileUploaded }: ChatHistoryProps) {
     const messagesEndRef = useRef<HTMLDivElement>(null)
     const [isLoading, setIsLoading] = useState(true)
     const { isConnected } = useWebSocket();
@@ -74,8 +77,12 @@ export function ChatHistory({ messages, setMessages, currentChatId }: ChatHistor
                         Connection lost. Attempting to reconnect...
                     </div>
                 )}
-                {messages.map((msg, index) => (
-                    <Message key={index} message={msg} />
+                {messages.map((message, index) => (
+                    <ChatMessage
+                        key={index}
+                        message={message}
+                        isFileUploaded={isFileUploaded}
+                    />
                 ))}
                 <div ref={messagesEndRef} />
             </div>
