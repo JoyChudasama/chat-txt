@@ -11,12 +11,11 @@ interface ChatHistoryProps {
     messages: MessageType[];
     setMessages: React.Dispatch<React.SetStateAction<MessageType[]>>;
     currentChatId: string;
-    isFileUploaded: boolean;
 }
 
 const sessionMessagesUrl = "http://localhost:8000/api/v1/session/messages";
 
-export function ChatHistory({ messages, setMessages, currentChatId, isFileUploaded }: ChatHistoryProps) {
+export function ChatHistory({ messages, setMessages, currentChatId }: ChatHistoryProps) {
     const messagesEndRef = useRef<HTMLDivElement>(null)
     const [isLoading, setIsLoading] = useState(true)
     const { isConnected, isStreaming } = useWebSocket();
@@ -81,7 +80,6 @@ export function ChatHistory({ messages, setMessages, currentChatId, isFileUpload
                     <ChatMessage
                         key={index}
                         message={message}
-                        isFileUploaded={isFileUploaded}
                         isStreaming={isStreaming && index === messages.length - 1 && message.type === 'ai'}
                     />
                 ))}

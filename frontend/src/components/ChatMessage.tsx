@@ -4,16 +4,29 @@ import { MessageType } from "@/types/chat"
 
 interface ChatMessageProps {
     message: MessageType;
-    isFileUploaded: boolean;
     isStreaming?: boolean;
 }
 
-export function ChatMessage({ message, isFileUploaded, isStreaming = false }: ChatMessageProps) {
+export function ChatMessage({ message, isStreaming = false }: ChatMessageProps) {
+    const LoadingDots = () => (
+        <div className="flex space-x-1">
+            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+        </div>
+    );
 
-    if(!message.content) return ''
+    if (message.type === "thinking") {
+        return (
+            <div className="flex justify-start mb-4">
+                <div className="bg-gray-200 rounded-lg px-4 py-3">
+                    <LoadingDots />
+                </div>
+            </div>
+        );
+    }
 
-    return (
-        
+    return message.content ? (
         <div className={`flex ${message.type === "human" ? "justify-end" : "justify-start"} mb-4`}>
             <div
                 className={`max-w-[80%] rounded-lg px-4 py-2 ${
@@ -26,12 +39,7 @@ export function ChatMessage({ message, isFileUploaded, isStreaming = false }: Ch
                     {message.content}
                     {isStreaming && <span className="animate-pulse">▋</span>}
                 </p>
-                {!isFileUploaded && message.type === "ai" ? (
-                    <p className="text-xs mt-2 text-gray-500 text-end">
-                        Chatting without file
-                    </p>
-                ) : ''}
             </div>
         </div>
-    )
+    ) : null;
 } 

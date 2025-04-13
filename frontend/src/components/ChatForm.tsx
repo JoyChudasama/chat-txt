@@ -44,7 +44,7 @@ export function ChatForm({ setMessages, isLoading, setIsLoading }: ChatFormProps
     }, [lastMessage, setMessages, setIsLoading]);
 
     useEffect(() => {
-        if (isStreaming) {
+        if (isStreaming && streamingContent) {
             setMessages(prevMessages => {
                 const messagesWithoutThinking = prevMessages.filter(msg => msg.type !== 'thinking');
                 const messagesWithoutLastAI = messagesWithoutThinking.filter((msg, index) => 
@@ -61,9 +61,10 @@ export function ChatForm({ setMessages, isLoading, setIsLoading }: ChatFormProps
         form.reset();
         setIsMessageEmpty(!values.userMessageInput.trim());
 
-        const newHumanMessage: MessageType = { type: "human", content: values.userMessageInput }
-        setMessages((oldMessages) => [...oldMessages, newHumanMessage])
-
+        const newHumanMessage: MessageType = { type: "human", content: values.userMessageInput };
+        const thinkingMessage: MessageType = { type: "thinking", content: "" };
+        
+        setMessages(oldMessages => [...oldMessages, newHumanMessage, thinkingMessage]);
         setIsLoading(true);
         sendMessage(values.userMessageInput);
     }

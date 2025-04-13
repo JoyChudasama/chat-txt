@@ -7,11 +7,9 @@ import { FileUpload } from "@/components/FileUpload"
 import { Sidebar } from "@/components/Sidebar"
 import { useState, useEffect } from "react"
 import { MessageType } from "@/types/chat"
-import { Toaster, toast } from 'react-hot-toast'
 import { WebSocketProvider } from "@/contexts/WebSocketContext"
 import { useWebSocket } from "@/contexts/WebSocketContext"
 
-const chatUrl = "http://localhost:8000/api/v1/chat"
 const chatHistoryUrl = "http://localhost:8000/api/v1/session/messages"
 
 function App() {
@@ -84,54 +82,12 @@ function App() {
     setIsFileUploaded(false)
   }
 
-  const onSendMessage = async (message: string) => {
-    if (!currentChatId) return
-
-    setIsLoading(true)
-    const formData = new FormData()
-    formData.append("user_message", message)
-
-    try {
-      const response = await fetch(`${chatUrl}?user_id=${userId}&session_id=${currentChatId}`, {
-        method: "POST",
-        body: formData,
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.detail || "Failed to send message")
-      }
-
-      const data = await response.json()
-      setMessages(oldMessages => {
-        const filteredMessages = oldMessages.filter(msg => msg.type !== "thinking" && msg.content !== message)
-        return [
-          ...filteredMessages,
-          {
-            type: "human",
-            content: message
-          },
-          {
-            type: "ai",
-            content: data.ai_message
-          }
-        ]
-      })
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to send message")
-      setMessages(oldMessages => oldMessages.filter(msg => msg.type !== "thinking"))
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
   if (!userId) {
     return <Login onLogin={handleLogin} />
   }
   
   return (
     <div className="h-screen overflow-hidden">
-      <Toaster position="top-right" />
       <Navbar onLogout={handleLogout} />
       <div className="h-[calc(100vh-4rem)] flex">
         <Sidebar 
@@ -166,7 +122,6 @@ function App() {
                     isLoading={isLoading}
                     setIsLoading={setIsLoading}
                     onLogout={handleLogout}
-                    isFileUploaded={isFileUploaded}
                   />
                 </WebSocketProvider>
               )
@@ -190,7 +145,6 @@ function ChatComponents({
   isLoading, 
   setIsLoading,
   onLogout,
-  isFileUploaded
 }: { 
   messages: MessageType[]; 
   setMessages: React.Dispatch<React.SetStateAction<MessageType[]>>;
@@ -198,7 +152,6 @@ function ChatComponents({
   isLoading: boolean;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   onLogout: () => void;
-  isFileUploaded: boolean;
 }) {
   const { closeConnection } = useWebSocket();
 
@@ -213,7 +166,6 @@ function ChatComponents({
         messages={messages} 
         setMessages={setMessages}
         currentChatId={currentChatId}
-        isFileUploaded={isFileUploaded}
       />
       <ChatForm 
         setMessages={setMessages} 
