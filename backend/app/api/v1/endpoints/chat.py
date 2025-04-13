@@ -23,18 +23,34 @@ async def websocket_endpoint(websocket: WebSocket, user_id: str, session_id: str
             chat_history.add_user_message(user_message)
             has_file = get_session_file_name(user_id, session_id)
             
-            if(has_file != ''):
+            await websocket.send_json({"type": "start", "user_message": user_message})
+            
+            if has_file != '':
                 rag_chain = await get_rag_chain(user_id, session_id)
-                ai_message = rag_chain.invoke({
+                response = rag_chain.stream({
                     "input": user_message,
                     "chat_history": chat_history.messages
-                })['answer']
+                })
+                
+                full_response = ""
+                for chunk in response:
+                    if 'answer' in chunk:
+                        await websocket.send_json({"type": "chunk", "content": chunk['answer']})
+                        full_response += chunk['answer']
             else:
                 model = ChatOllama(model="mistral:latest", temperature=0.5)
-                ai_message = model.invoke(chat_history.messages).content
+                response = model.stream(chat_history.messages)
+                
+                full_response = ""
+                for chunk in response:
+                    if hasattr(chunk, 'content'):
+                        await websocket.send_json({"type": "chunk", "content": chunk.content})
+                        full_response += chunk.content
             
-            chat_history.add_ai_message(ai_message)
-            await websocket.send_json({"user_message": user_message, "ai_message": ai_message})
+            await websocket.send_json({"type": "end"})
+            
+            chat_history.add_ai_message(full_response)
+            
     except WebSocketDisconnect:
         print(f"Client disconnected: {user_id}")
     except Exception as e:
