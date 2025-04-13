@@ -1,17 +1,19 @@
 from langchain_google_firestore import FirestoreChatMessageHistory
 from app.db.firestore import FIRESTORE_CLIENT
 from datetime import datetime
+from typing import Optional
 
-def create_session(user_id: str, session_id: str, file_name: str)->dict:
+def create_session(user_id: str, session_id: str, title: str, file_name: Optional[str] = None)->dict:
     """Create a new session in the database."""
     
     collection_name = f"{user_id}_sessions"
     FIRESTORE_CLIENT.collection(collection_name).document(session_id).set({
-        "title": "New Session",
+        "title": title,
         "session_id": session_id,
         "created_at": datetime.now(),
         "file_name": file_name
     })
+
     return {"message": "Session created successfully"}
 
 def delete_session(user_id: str, session_id: str)->dict:
@@ -42,3 +44,9 @@ def get_session_messages(user_id: str, session_id: str) -> FirestoreChatMessageH
         collection=collection_name,
         client=FIRESTORE_CLIENT,
     )
+
+def get_session_file_name(user_id: str, session_id: str) -> str:
+    """Get the file name for a session."""
+
+    collection_name = f"{user_id}_sessions"
+    return FIRESTORE_CLIENT.collection(collection_name).document(session_id).get().to_dict()['file_name']
