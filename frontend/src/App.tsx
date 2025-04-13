@@ -90,7 +90,7 @@ function App() {
   return (
     <div className="h-screen overflow-hidden">
       <Toaster position="top-right" />
-      <Navbar onLogout={handleLogout} />
+      <Navbar onLogout={handleLogout} username={userId} />
       <div className="h-[calc(100vh-4rem)] flex">
         <Sidebar 
           userId={userId}
