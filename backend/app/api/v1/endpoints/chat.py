@@ -1,27 +1,10 @@
-from fastapi import APIRouter, Form, WebSocket, WebSocketDisconnect
-from backend.app.services.session_service import get_session_messages
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+from backend.app.services.session_service import get_session_messages, get_session_file_name
 from app.services.rag_service import get_rag_chain
-from app.models.chat_response import ChatResponse
+from langchain_ollama.chat_models import ChatOllama
 import json
 
 router = APIRouter()
-
-@router.post("/", response_model=ChatResponse)
-async def chat(user_id: str, session_id: str, user_message: str = Form(...)):
-    if not user_message:
-        return {"user_message": "", "ai_message": "No message"}
-    
-    chat_history = get_session_messages(user_id=user_id, session_id=session_id)
-    chat_history.add_user_message(user_message)
-
-    rag_chain = await get_rag_chain(user_id, session_id)
-    ai_message = rag_chain.invoke({
-        "input": user_message,
-        "chat_history": chat_history.messages
-    })['answer']
-
-    chat_history.add_ai_message(ai_message)
-    return {"user_message": user_message, "ai_message": ai_message}
 
 @router.websocket("/ws/{user_id}/{session_id}")
 async def websocket_endpoint(websocket: WebSocket, user_id: str, session_id: str):
@@ -38,23 +21,20 @@ async def websocket_endpoint(websocket: WebSocket, user_id: str, session_id: str
             
             chat_history = get_session_messages(user_id=user_id, session_id=session_id)
             chat_history.add_user_message(user_message)
-
-            rag_chain = await get_rag_chain(user_id, session_id)
-            async for event in rag_chain.astream({
-                "input": user_message,
-                "chat_history": chat_history.messages
-            }):
-                
-                print(event)
-
-            ai_message = rag_chain.invoke({
-                "input": user_message,
-                "chat_history": chat_history.messages
-            })['answer']
-
+            has_file = get_session_file_name(user_id, session_id)
+            
+            if(has_file != ''):
+                rag_chain = await get_rag_chain(user_id, session_id)
+                ai_message = rag_chain.invoke({
+                    "input": user_message,
+                    "chat_history": chat_history.messages
+                })['answer']
+            else:
+                model = ChatOllama(model="mistral:latest", temperature=0.5)
+                ai_message = model.invoke(chat_history.messages).content
+            
             chat_history.add_ai_message(ai_message)
             await websocket.send_json({"user_message": user_message, "ai_message": ai_message})
-            
     except WebSocketDisconnect:
         print(f"Client disconnected: {user_id}")
     except Exception as e:
