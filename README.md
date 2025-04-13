@@ -1,13 +1,13 @@
-# ChatPDF
+# ChatTXT
 
-A modern web application that allows users to chat with their PDF documents using AI. Built with React, FastAPI, and Langchain.
+A modern web application that allows users to chat with their TXT documents using AI. Built with React, FastAPI, and Langchain.
 
 ## Features
 
-- 📄 PDF file upload and processing
+- 📄 TXT file upload and processing
 - 💬 Interactive chat interface with AI responses
 - 📚 Session management for multiple conversations
-- 🔍 Context-aware responses based on PDF content
+- 🔍 Context-aware responses based on TXT content
 - 🎨 Clean and intuitive user interface
 
 ## Tech Stack

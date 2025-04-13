@@ -1,11 +1,11 @@
-# ChatPDF Frontend
+# ChatTXT Frontend
 
-The frontend part of Chat PDF, built with React, TypeScript, and Tailwind CSS.
+The frontend part of Chat TXT, built with React, TypeScript, and Tailwind CSS.
 
 ## Features
 
 - 🎨 Modern UI with Tailwind CSS and Shadcn/ui components
-- 📄 PDF file upload interface
+- 📄 TXT file upload interface
 - 💬 Real-time chat interface
 - 📚 Session management with sidebar
 - 🚀 Optimized performance with React hooks
@@ -29,12 +29,12 @@ frontend/
 │   │   ├── ui/           # Shadcn/ui components
 │   │   ├── ChatForm.tsx  # Chat input form
 │   │   ├── ChatHistory.tsx # Chat messages display
-│   │   ├── FileUpload.tsx # PDF upload interface
+│   │   ├── FileUpload.tsx # TXT upload interface
 │   │   └── Sidebar.tsx   # Session management
 │   ├── types/
 │   │   └── chat.ts       # TypeScript interfaces
 │   ├── App.tsx           # Main application component
-│   └── main.tsx          # Application entry point
+│   └── main.tsx         # Application entry point
 ├── package.json
 ├── tsconfig.json
 └── vite.config.ts
@@ -78,7 +78,7 @@ Displays chat messages and AI responses.
   - Scroll management
 
 ### FileUpload
-Manages PDF file uploads.
+Manages TXT file uploads.
 - Features:
   - Drag and drop support
   - File type validation
@@ -103,7 +103,7 @@ The frontend communicates with the backend through the following endpoints:
 - `DELETE /api/v1/session/{session_id}` - Delete session
 
 ### File Operations
-- `POST /api/v1/upload_file` - Upload PDF file
+- `POST /api/v1/upload_file` - Upload TXT file
 
 ### Chat Operations
 - `POST /api/v1/chat` - Send message and get response

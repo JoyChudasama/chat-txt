@@ -1,11 +1,11 @@
-# ChatPDF Backend
+# ChatTXT Backend
 
-The backend part of Chat PDF, built with FastAPI, Python, and Langchain.
+The backend part of Chat TXT, built with FastAPI, Python, and Langchain.
 
 ## Features
 
 - 🚀 FastAPI for high-performance API
-- 📄 PDF processing with Langchain
+- 📄 TXT processing with Langchain
 - 💬 Chat history management with Firestore
 - 🤖 Local LLM integration with Ollama
 - 📚 Session management
@@ -18,7 +18,6 @@ The backend part of Chat PDF, built with FastAPI, Python, and Langchain.
 - Langchain
 - Firebase/Firestore
 - Ollama (Local LLM)
-- PyPDF2
 - Pydantic
 
 ## Project Structure
@@ -101,8 +100,8 @@ The API will be available at `http://localhost:8000`
 
 ### File Operations
 - `POST /api/v1/upload_file`
-  - Upload and process a PDF file
-  - Form Data: `file` (PDF), `session_id` (string)
+  - Upload and process a TXT file
+  - Form Data: `file` (TXT), `session_id` (string)
   - Returns: Success message
 
 ### Chat Operations
@@ -137,6 +136,6 @@ The API will be available at `http://localhost:8000`
 - Maintains session metadata
 
 ### Upload Service
-- Processes PDF files
+- Processes TXT files
 - Creates document embeddings
 - Manages file storage
