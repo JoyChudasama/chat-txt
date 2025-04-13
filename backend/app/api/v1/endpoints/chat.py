@@ -40,6 +40,13 @@ async def websocket_endpoint(websocket: WebSocket, user_id: str, session_id: str
             chat_history.add_user_message(user_message)
 
             rag_chain = await get_rag_chain(user_id, session_id)
+            async for event in rag_chain.astream({
+                "input": user_message,
+                "chat_history": chat_history.messages
+            }):
+                
+                print(event)
+
             ai_message = rag_chain.invoke({
                 "input": user_message,
                 "chat_history": chat_history.messages

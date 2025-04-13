@@ -9,6 +9,7 @@ import { useState, useEffect } from "react"
 import { MessageType } from "@/types/chat"
 import { Toaster, toast } from 'react-hot-toast'
 import { WebSocketProvider } from "@/contexts/WebSocketContext"
+import { useWebSocket } from "@/contexts/WebSocketContext"
 
 const chatUrl = "http://localhost:8000/api/v1/chat"
 const chatHistoryUrl = "http://localhost:8000/api/v1/session/messages"
@@ -158,15 +159,13 @@ function App() {
                 />
               ) : (
                 <WebSocketProvider userId={userId} sessionId={currentChatId}>
-                  <ChatHistory 
+                  <ChatComponents 
                     messages={messages} 
                     setMessages={setMessages}
                     currentChatId={currentChatId}
-                  />
-                  <ChatForm 
-                    setMessages={setMessages} 
                     isLoading={isLoading}
                     setIsLoading={setIsLoading}
+                    onLogout={handleLogout}
                   />
                 </WebSocketProvider>
               )
@@ -180,6 +179,45 @@ function App() {
       </div>
     </div>
   )
+}
+
+// Separate component to access WebSocket context
+function ChatComponents({ 
+  messages, 
+  setMessages, 
+  currentChatId, 
+  isLoading, 
+  setIsLoading,
+  onLogout 
+}: { 
+  messages: MessageType[]; 
+  setMessages: React.Dispatch<React.SetStateAction<MessageType[]>>;
+  currentChatId: string;
+  isLoading: boolean;
+  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
+  onLogout: () => void;
+}) {
+  const { closeConnection } = useWebSocket();
+
+  const handleLogout = () => {
+    closeConnection();
+    onLogout();
+  };
+
+  return (
+    <>
+      <ChatHistory 
+        messages={messages} 
+        setMessages={setMessages}
+        currentChatId={currentChatId}
+      />
+      <ChatForm 
+        setMessages={setMessages} 
+        isLoading={isLoading}
+        setIsLoading={setIsLoading}
+      />
+    </>
+  );
 }
 
 export default App

@@ -4,6 +4,7 @@ interface WebSocketContextType {
   sendMessage: (message: string) => void;
   lastMessage: any | null;
   isConnected: boolean;
+  closeConnection: () => void;
 }
 
 const WebSocketContext = createContext<WebSocketContextType | undefined>(undefined);
@@ -19,12 +20,21 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children, 
   const [isConnected, setIsConnected] = useState(false);
   const ws = useRef<WebSocket | null>(null);
 
+  const closeConnection = () => {
+    if (ws.current) {
+      ws.current.close();
+      ws.current = null;
+      setIsConnected(false);
+    }
+  };
+
   useEffect(() => {
     const connect = () => {
       const wsUrl = `ws://localhost:8000/api/v1/chat/ws/${userId}/${sessionId}`;
       ws.current = new WebSocket(wsUrl);
 
       ws.current.onopen = () => {
+        console.log('WebSocket Connected');
         setIsConnected(true);
       };
 
@@ -34,12 +44,16 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children, 
       };
 
       ws.current.onclose = () => {
+        console.log('WebSocket Disconnected');
         setIsConnected(false);
-        // Attempt to reconnect after 5 seconds
-        setTimeout(connect, 5000);
+        // Only attempt to reconnect if we haven't explicitly closed the connection
+        if (ws.current) {
+          setTimeout(connect, 5000);
+        }
       };
 
       ws.current.onerror = (error) => {
+        console.error('WebSocket Error:', error);
         setIsConnected(false);
       };
     };
@@ -47,20 +61,20 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children, 
     connect();
 
     return () => {
-      if (ws.current) {
-        ws.current.close();
-      }
+      closeConnection();
     };
   }, [userId, sessionId]);
 
   const sendMessage = (message: string) => {
     if (ws.current && ws.current.readyState === WebSocket.OPEN) {
       ws.current.send(JSON.stringify({ message }));
+    } else {
+      console.error('WebSocket is not connected');
     }
   };
 
   return (
-    <WebSocketContext.Provider value={{ sendMessage, lastMessage, isConnected }}>
+    <WebSocketContext.Provider value={{ sendMessage, lastMessage, isConnected, closeConnection }}>
       {children}
     </WebSocketContext.Provider>
   );
