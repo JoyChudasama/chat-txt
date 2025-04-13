@@ -5,6 +5,8 @@ interface WebSocketContextType {
   lastMessage: any | null;
   isConnected: boolean;
   closeConnection: () => void;
+  streamingContent: string;
+  isStreaming: boolean;
 }
 
 const WebSocketContext = createContext<WebSocketContextType | undefined>(undefined);
@@ -18,6 +20,8 @@ interface WebSocketProviderProps {
 export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children, userId, sessionId }) => {
   const [lastMessage, setLastMessage] = useState<any | null>(null);
   const [isConnected, setIsConnected] = useState(false);
+  const [streamingContent, setStreamingContent] = useState('');
+  const [isStreaming, setIsStreaming] = useState(false);
   const ws = useRef<WebSocket | null>(null);
 
   const closeConnection = () => {
@@ -40,7 +44,17 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children, 
 
       ws.current.onmessage = (event) => {
         const data = JSON.parse(event.data);
-        setLastMessage(data);
+        
+        if (data.type === 'start') {
+          setIsStreaming(true);
+          setStreamingContent('');
+        } else if (data.type === 'chunk') {
+          setStreamingContent(prev => prev + data.content);
+        } else if (data.type === 'end') {
+          setIsStreaming(false);
+          setLastMessage({ ai_message: streamingContent });
+          setStreamingContent('');
+        }
       };
 
       ws.current.onclose = () => {
@@ -74,7 +88,14 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children, 
   };
 
   return (
-    <WebSocketContext.Provider value={{ sendMessage, lastMessage, isConnected, closeConnection }}>
+    <WebSocketContext.Provider value={{ 
+      sendMessage, 
+      lastMessage, 
+      isConnected, 
+      closeConnection,
+      streamingContent,
+      isStreaming
+    }}>
       {children}
     </WebSocketContext.Provider>
   );

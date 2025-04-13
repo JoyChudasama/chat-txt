@@ -19,7 +19,7 @@ const sessionMessagesUrl = "http://localhost:8000/api/v1/session/messages";
 export function ChatHistory({ messages, setMessages, currentChatId, isFileUploaded }: ChatHistoryProps) {
     const messagesEndRef = useRef<HTMLDivElement>(null)
     const [isLoading, setIsLoading] = useState(true)
-    const { isConnected } = useWebSocket();
+    const { isConnected, isStreaming } = useWebSocket();
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -82,6 +82,7 @@ export function ChatHistory({ messages, setMessages, currentChatId, isFileUpload
                         key={index}
                         message={message}
                         isFileUploaded={isFileUploaded}
+                        isStreaming={isStreaming && index === messages.length - 1 && message.type === 'ai'}
                     />
                 ))}
                 <div ref={messagesEndRef} />

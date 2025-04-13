@@ -38,7 +38,7 @@ async def websocket_endpoint(websocket: WebSocket, user_id: str, session_id: str
                         await websocket.send_json({"type": "chunk", "content": chunk['answer']})
                         full_response += chunk['answer']
             else:
-                model = ChatOllama(model="mistral:latest", temperature=0.5)
+                model = ChatOllama(model="mistral:latest", temperature=0.25)
                 response = model.stream(chat_history.messages)
                 
                 full_response = ""

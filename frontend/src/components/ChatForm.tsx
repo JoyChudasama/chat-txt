@@ -24,7 +24,7 @@ interface ChatFormProps {
 
 export function ChatForm({ setMessages, isLoading, setIsLoading }: ChatFormProps) {
     const [isMessageEmpty, setIsMessageEmpty] = useState(true);
-    const { sendMessage, lastMessage } = useWebSocket();
+    const { sendMessage, lastMessage, streamingContent, isStreaming } = useWebSocket();
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -43,6 +43,18 @@ export function ChatForm({ setMessages, isLoading, setIsLoading }: ChatFormProps
         }
     }, [lastMessage, setMessages, setIsLoading]);
 
+    useEffect(() => {
+        if (isStreaming) {
+            setMessages(prevMessages => {
+                const messagesWithoutThinking = prevMessages.filter(msg => msg.type !== 'thinking');
+                const messagesWithoutLastAI = messagesWithoutThinking.filter((msg, index) => 
+                    !(msg.type === 'ai' && index === messagesWithoutThinking.length - 1)
+                );
+                return [...messagesWithoutLastAI, { type: 'ai', content: streamingContent }];
+            });
+        }
+    }, [streamingContent, isStreaming, setMessages]);
+
     async function handleSubmit(values: z.infer<typeof formSchema>) {
         if (isLoading) return;
 
@@ -51,9 +63,6 @@ export function ChatForm({ setMessages, isLoading, setIsLoading }: ChatFormProps
 
         const newHumanMessage: MessageType = { type: "human", content: values.userMessageInput }
         setMessages((oldMessages) => [...oldMessages, newHumanMessage])
-
-        const thinkingMessage: MessageType = { type: "thinking", content: "" }
-        setMessages(oldMessages => [...oldMessages, thinkingMessage])
 
         setIsLoading(true);
         sendMessage(values.userMessageInput);
