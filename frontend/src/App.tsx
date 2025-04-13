@@ -9,6 +9,7 @@ import { useState, useEffect } from "react"
 import { MessageType } from "@/types/chat"
 import { WebSocketProvider } from "@/contexts/WebSocketContext"
 import { useWebSocket } from "@/contexts/WebSocketContext"
+import { Toaster } from 'react-hot-toast'
 
 const chatHistoryUrl = "http://localhost:8000/api/v1/session/messages"
 
@@ -88,6 +89,7 @@ function App() {
   
   return (
     <div className="h-screen overflow-hidden">
+      <Toaster position="top-right" />
       <Navbar onLogout={handleLogout} />
       <div className="h-[calc(100vh-4rem)] flex">
         <Sidebar 
